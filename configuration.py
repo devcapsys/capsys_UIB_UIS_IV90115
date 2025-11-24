@@ -5,8 +5,8 @@ from modules.capsys_wrapper_tm_t20iii.capsys_wrapper_tm_t20III import PrinterDC 
 
 # Initialize global variables
 CURRENTH_PATH = os.path.dirname(__file__)
-NAME_GUI = "UIB_UIS"
-CONFIG_JSON_NAME = "config_uib_uis"
+NAME_GUI = "SOUU-001"
+CONFIG_JSON_NAME = "config_SOUU-001"
 PRODUCT_LIST_ID_DEFAULT = "7"
 VERSION = "V1.0.0"
 HASH_GIT = "DEBUG" # Will be replaced by the Git hash when compiled with command .\build.bat

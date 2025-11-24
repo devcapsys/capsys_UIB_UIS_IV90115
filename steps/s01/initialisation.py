@@ -10,7 +10,7 @@ from modules.capsys_mysql_command.capsys_mysql_command import (GenericDatabaseMa
 from configuration import VERSION, get_project_path
 
 def get_info():
-    return "Cette étape crée device_under_test."    
+    return "Cette étape crée device_under_test."
 
 def init_database_and_checks(log, config: configuration.AppConfig, update_percentage=lambda x: None):
     # Ensure db is initialized
