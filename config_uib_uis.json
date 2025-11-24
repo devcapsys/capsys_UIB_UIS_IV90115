@@ -6,11 +6,5 @@
   "µC": {
     "key": "SW00062",
     "path": "T:\\SW\\00\\062\\A\\SW00062_A_MAG_FLEX_NF_v010100.srec"
-  },
-  "MULTIMETRE": {
-    "path": "EXAMPLE"
-  },
-  "DUT": {
-    "path": "EXAMPLE"
   }
 }
