@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import sys, os
+import sys, os, subprocess
 if __name__ == "__main__":
     BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
     if BASE_DIR not in sys.path:
@@ -21,13 +21,35 @@ def run_step(log, config: configuration.AppConfig, update_percentage=lambda x: N
     # We always save the name of the step in the db
     step_name_id = config.db.create("step_name", {"device_under_test_id": config.device_under_test_id, "step_name": step_name})
     ###################################################################
-    update_percentage(50) # Update to 50% (example)
-    # Logic here
-    #Example failure
-    return_msg["infos"].append("Exemple d'erreur détectée.")
-    return_msg["infos"].append("Exemple 2 d'erreur détectée.")
-    return 1, return_msg
+    log("Il faut bien penser à configuer la carte réseau sur l'ip 192.168.1.11", "blue")
+    
+    # Ping de l'adresse IP du DUT
+    dut_ip = "192.168.1.10"
+    log(f"Vérification de la connectivité avec {dut_ip}...", "blue")
+    
+    try:
+        # Exécuter la commande ping (4 paquets sous Windows)
+        result = subprocess.run(
+            ["ping", "-n", "4", dut_ip],
+            capture_output=True,
+            text=True,
+            timeout=10
+        )
+        
+        if result.returncode == 0:
+            pass
+        else:
+            return_msg["infos"].append(f"Échec de la connectivité avec {dut_ip}")
+            return 1, return_msg
+            
+    except subprocess.TimeoutExpired:
+        return_msg["infos"].append(f"Timeout lors du test de connectivité avec {dut_ip}")
+        return 1, return_msg
+    except Exception as e:
+        return_msg["infos"].append(f"Erreur lors du test de connectivité: {str(e)}")
+        return 1, return_msg
 
+    return_msg["infos"].append("Étape OK")
     return 0, return_msg
 
 

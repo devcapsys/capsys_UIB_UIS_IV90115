@@ -28,6 +28,7 @@ class TestThread(QThread):
     log_message = pyqtSignal(str, str)
     finished = pyqtSignal()
     step_failed = pyqtSignal(str, str)
+    request_user_input = pyqtSignal(str, str, object, int)  # title, message, callback, font_size
 
     def __init__(self, skipped_steps=None, generate_report=False):
         """Initialize the test thread and load test steps."""
@@ -55,6 +56,10 @@ class TestThread(QThread):
     def emit_step_percentage(self, step_idx, percentage):
         """Emit a signal to update the percentage of a specific step."""
         self.update_step_percentage.emit(step_idx, percentage)
+
+    def request_user_text_input(self, title, message, callback, font_size=12):
+        """Request text input from the user via a dialog box."""
+        self.request_user_input.emit(title, message, callback, font_size)
 
     def load_steps(self) -> List[Tuple[str, Callable, Callable]]:
         """Dynamically load test step modules from the 'steps' directory and return a list of (name, run_step, get_info) tuples."""
@@ -129,6 +134,8 @@ class TestThread(QThread):
             try:
                     # Create percentage update function for this step
                     update_percentage_func = lambda percentage: self.emit_step_percentage(idx, percentage)
+                    # Store test_thread reference in config for user input requests
+                    config.test_thread = self
                     success, message = step_func(self.emit_log_message, config, update_percentage_func)
                     if isinstance(message, dict):
                         message = json.dumps(message, ensure_ascii=False, indent=2)
@@ -473,6 +480,31 @@ class MainWindow(QWidget):
         message = self.step_messages.get(idx, "Aucun message disponible.")  # Retrieves the stored message
         QMessageBox.information(self, f"Message Étape {idx + 1}", message)
 
+    def show_user_input_dialog(self, title, message, callback, font_size=14):
+        """Display an input dialog to get text from the user and call the callback with the result."""
+        from PyQt6.QtWidgets import QInputDialog, QLabel
+        from PyQt6.QtGui import QFont
+        
+        # Create a custom input dialog with font size control
+        dialog = QInputDialog(self)
+        dialog.setWindowTitle(title)
+        dialog.setLabelText(message)
+        dialog.setInputMode(QInputDialog.InputMode.TextInput)
+        
+        # Set font size for the label
+        label_font = QFont()
+        label_font.setPointSize(font_size)
+        for child in dialog.findChildren(QLabel):
+            child.setFont(label_font)
+        
+        ok = dialog.exec()
+        text = dialog.textValue()
+        
+        if ok:
+            callback(text)
+        else:
+            callback(None)
+
     def update_window_size(self):
         """Update window size based on current mode."""
         is_simple = self.toggle_mode_button.isChecked()
@@ -663,6 +695,7 @@ class MainWindow(QWidget):
         self.test_thread.log_message.connect(self.append_log)
         self.test_thread.finished.connect(self.test_finished)
         self.test_thread.step_failed.connect(self.handle_step_failure)
+        self.test_thread.request_user_input.connect(self.show_user_input_dialog)
         self.test_thread.start()
 
     def handle_step_failure(self, step_name, message):
@@ -878,12 +911,16 @@ class MainWindow(QWidget):
         """Handle the end of the test sequence, update the log, and store results in the database."""
         from PyQt6.QtGui import QTextCursor, QTextCharFormat, QColor
         
-        all_success = all(label_status.text() == "✅" for _, label_status in self.steps_widgets)
-        any_error = any(label_status.text() == "❌" for _, label_status in self.steps_widgets)
+        # Check if all steps are successful (contains ✅), considering percentage and step number
+        all_success = all("✅" in label_status.text() for _, label_status in self.steps_widgets)
+        # Check if any step has an error (contains ❌)
+        any_error = any("❌" in label_status.text() for _, label_status in self.steps_widgets)
+        # Check if any step was skipped (contains ⏭️)
+        any_skipped = any("⏭️" in label_status.text() for _, label_status in self.steps_widgets)
 
         now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-        if all_success:
+        if all_success and not any_skipped:
             color = "green"
             message = "Test OK"
         elif any_error:

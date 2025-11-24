@@ -159,8 +159,19 @@ def run_step(log, config: configuration.AppConfig, update_percentage=lambda x: N
         return_msg["infos"].append(f"{step_name_id}")
         return status, return_msg
 
-
-
+    msg = configuration.request_user_input(
+        config,
+        "Vérification",
+        "Vérifier que :\n" \
+        "- Le switch de programmation est vers le haut\n" \
+        "- L'interrupteur de test est vers le haut\n" \
+        "- Mettre en tension le banc\n" \
+        "- Les LEDs vertes sont allumées\n" \
+    )
+    if msg is None:
+        return_msg["infos"].append("L'utilisateur a annulé la saisie.")
+        return 1, return_msg
+    
     return_msg["infos"].append(f"Initialisation OK")
     return 0, return_msg
 

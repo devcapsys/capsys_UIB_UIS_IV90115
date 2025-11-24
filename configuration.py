@@ -1,6 +1,5 @@
-import os
-from typing import Optional
-import atexit
+import os, serial, atexit
+from typing import Optional, Any
 from modules.capsys_mysql_command.capsys_mysql_command import (GenericDatabaseManager, DatabaseConfig) # Custom
 from modules.capsys_wrapper_tm_t20iii.capsys_wrapper_tm_t20III import PrinterDC  # Custom
 # from modules.capsys_daq_manager.capsys_daq_manager import DAQManager  # Custom
@@ -9,9 +8,9 @@ from modules.capsys_wrapper_tm_t20iii.capsys_wrapper_tm_t20III import PrinterDC 
 
 # Initialize global variables
 CURRENTH_PATH = os.path.dirname(__file__)
-NAME_GUI = "Template"
-CONFIG_JSON_NAME = "config_template"
-PRODUCT_LIST_ID_DEFAULT = "5"
+NAME_GUI = "UIB_UIS"
+CONFIG_JSON_NAME = "config_uib_uis"
+PRODUCT_LIST_ID_DEFAULT = "7"
 VERSION = "V1.0.0"
 HASH_GIT = "DEBUG" # Will be replaced by the Git hash when compiled with command .\build.bat
 AUTHOR = "Thomas GERARDIN"
@@ -21,6 +20,44 @@ def get_project_path(*paths):
     """Return the absolute path from the project root, regardless of current working directory."""
     return os.path.abspath(os.path.join(os.path.dirname(__file__), *paths))
 
+def request_user_input(config, title: str, message: str, font_size: int = 14) -> Optional[str]:
+    """
+    Request text input from the user.
+    
+    If running from GUI (main.py), displays a dialog box.
+    If running directly (debug mode), uses console input().
+    
+    Args:
+        config: AppConfig instance
+        title: Title of the dialog box (GUI mode only)
+        message: Message to display to the user
+        font_size: Font size for the message (default: 14)
+    
+    Returns:
+        The text entered by the user, or None if cancelled
+    """
+    import time
+    
+    user_input_result = {"text": None, "received": False}
+    
+    def handle_user_input(text):
+        user_input_result["text"] = text
+        user_input_result["received"] = True
+    
+    if config.test_thread is not None:
+        # GUI mode with dialog box
+        config.test_thread.request_user_text_input(title, message, handle_user_input, font_size)
+        
+        # Wait for user input (without timeout)
+        while not user_input_result["received"]:
+            time.sleep(0.1)
+        
+        return user_input_result["text"]
+    else:
+        # Debug mode with console input
+        user_text = input(message + " ")
+        return user_text if user_text else None
+    
 class ConfigItems:
     """Container for all configuration items used in the test sequence."""
     key_map = {
@@ -85,18 +122,22 @@ class Arg:
 class AppConfig:
     def __init__(self):
         self.arg = Arg()
+        self.test_thread: Any = None  # Reference to TestThread for user input requests
         self.db_config: Optional[DatabaseConfig] = None
         self.db: Optional[GenericDatabaseManager] = None
         self.device_under_test_id: Optional[int] = None
         self.configItems = ConfigItems()
         self.printer: Optional[PrinterDC] = None
+        self.ser: Optional[serial.Serial] = None
         atexit.register(self.cleanup) # Register cleanup function to be called on exit
 
     def cleanup(self):
         if self.db:
             self.db.disconnect()
             self.db = None
-        # Add other cleanup actions as needed
+        if self.ser and self.ser.is_open:
+            self.ser.close()
+            self.ser = None
         self.device_under_test_id = None
         
     def save_value(self, step_name_id: int, key: str, value, unit: str = "", min_value: Optional[float] = None, max_value: Optional[float] = None, valid: int = 0):

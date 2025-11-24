@@ -23,6 +23,15 @@ def run_step(log, config: configuration.AppConfig, update_percentage=lambda x: N
     config.db.create("step_name", {"device_under_test_id": config.device_under_test_id, "step_name": step_name})
     success = 0
 
+    # Close serial port if open
+    if hasattr(config, 'ser') and config.ser is not None and config.ser.is_open:
+        try:
+            config.ser.close()
+            log("Port série fermé.", "blue")
+        except Exception as e:
+            log(f"Erreur lors de la fermeture du port série : {e}", "yellow")
+            success = 2
+
     # delete config.json file
     config_file_path = get_project_path("config.json")
     if os.path.exists(config_file_path):
