@@ -14,7 +14,7 @@ a = Analysis(
         ('logo-big.png', '.'),
         ('steps', 'steps'),
         ('modules/capsys_daq_manager', 'modules/capsys_daq_manager'),
-        ('modules/capsys_mcp23017', 'modules/capsys_mcp23017')
+        ('modules/capsys_mcp23017', 'modules/capsys_mcp23017'),
         ('modules/capsys_mysql_command', 'modules/capsys_mysql_command'),
         ('modules/capsys_pdf_report', 'modules/capsys_pdf_report'),
         ('modules/capsys_serial_instrument_manager', 'modules/capsys_serial_instrument_manager'),
