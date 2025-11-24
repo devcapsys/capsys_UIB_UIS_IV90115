@@ -5,11 +5,11 @@ from modules.capsys_wrapper_tm_t20iii.capsys_wrapper_tm_t20III import PrinterDC 
 
 # Initialize global variables
 CURRENTH_PATH = os.path.dirname(__file__)
-NAME_GUI = "SOUU-001"
+NAME_GUI = "UIB 3 en 1, 8E/8S, RS485, Ehernet, 24VDC"
 CONFIG_JSON_NAME = "config_SOUU-001"
-PRODUCT_LIST_ID_DEFAULT = "7"
+PRODUCT_LIST_ID_DEFAULT = "5"
 VERSION = "V1.0.0"
-HASH_GIT = "DEBUG" # Will be replaced by the Git hash when compiled with command .\build.bat
+HASH_GIT = "015dbb7" # Will be replaced by the Git hash when compiled with command .\build.bat
 AUTHOR = "Thomas GERARDIN"
 PRINTER_NAME = "EPSON TM-T20III Receipt"
 
