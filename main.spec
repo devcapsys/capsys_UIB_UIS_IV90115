@@ -43,6 +43,7 @@ a = Analysis(
         
         # Custom modules
         'modules.capsys_daq_manager',
+        'modules.capsys_mac_manager',
         'modules.capsys_mac_manager.capsys_mac_manager',
         'modules.capsys_mcp23017',
         'modules.capsys_mcp23017.modules.capsys_bitbangi2c',
