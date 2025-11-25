@@ -14,14 +14,7 @@ a = Analysis(
     datas=[
         ('logo-big.png', '.'),
         ('steps', 'steps'),
-        ('modules/__init__.py', 'modules'),
-        ('modules/capsys_daq_manager', 'modules/capsys_daq_manager'),
-        ('modules/capsys_mac_manager', 'modules/capsys_mac_manager'),
-        ('modules/capsys_mcp23017', 'modules/capsys_mcp23017'),
-        ('modules/capsys_mysql_command', 'modules/capsys_mysql_command'),
-        ('modules/capsys_pdf_report', 'modules/capsys_pdf_report'),
-        ('modules/capsys_serial_instrument_manager', 'modules/capsys_serial_instrument_manager'),
-        ('modules/capsys_wrapper_tm_t20iii', 'modules/capsys_wrapper_tm_t20iii')
+        ('modules', 'modules')
     ] + mysql_datas + reportlab_datas + openpyxl_datas,
     hiddenimports=[
         # PyQt6 modules
