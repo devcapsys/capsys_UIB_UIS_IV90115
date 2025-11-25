@@ -59,6 +59,7 @@ class ConfigItems:
     """Container for all configuration items used in the test sequence."""
     key_map = {
         "STM32CubeProgrammer": "stm32_cube_programmer",
+        "MAC_ADRESS_FILE": "mac_adress_file",
         "BTL": "btl",
         "µC": "microcontroller",
         "PORT_COM_DUT": "dut",
@@ -100,6 +101,7 @@ class ConfigItems:
     def __init__(self):
         """Initialize all ConfigItem attributes for different test parameters."""
         self.stm32_cube_programmer = self.ConfigItem()
+        self.mac_adress_file = self.ConfigItem()
         self.btl = self.ConfigItem()
         self.microcontroller = self.ConfigItem()
         self.dut = self.ConfigItem()

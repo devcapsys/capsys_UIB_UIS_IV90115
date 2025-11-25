@@ -3,6 +3,9 @@
     "path": "C:\\Program Files\\STMicroelectronics\\STM32Cube\\STM32CubeProgrammer\\bin",
     "name": "STM32_Programmer_CLI.exe"
   },
+  "MAC_ADRESS_FILE": {
+    "path": "C:\\Users\\tgerardin\\CAPSYS\\INDUSTRIE - Documents\\PROD\\Adresses MAC\\adresses MAC.xlsx"
+  },
   "BTL": {
     "key": "SW00036",
     "path": "T:\\SW\\00\\036\\A\\SW00036_A00r_Bootloader_UIB_UIS.hex"
