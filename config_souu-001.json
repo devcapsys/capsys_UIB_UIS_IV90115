@@ -3,13 +3,13 @@
     "path": "C:\\Program Files\\STMicroelectronics\\STM32Cube\\STM32CubeProgrammer\\bin",
     "name": "STM32_Programmer_CLI.exe"
   },
-  "BLE": {
-    "key": "SW00050",
-    "path": "T:\\SW\\00\\050\\A\\SW00050A_Bluetooth_MAGFLEX_codeless_531_datapump.hex"
+  "BTL": {
+    "key": "SW00036",
+    "path": "T:\\SW\\00\\036\\A\\SW00036_A00r_Bootloader_UIB_UIS.hex"
   },
   "µC": {
-    "key": "SW00062",
-    "path": "T:\\SW\\00\\062\\A\\SW00062_A_MAG_FLEX_NF_v010100.srec"
+    "key": "SW00083",
+    "path": "T:\\SW\\00\\083\\A\\SW00083_A01r_UIB_APP.hex"
   },
   "PORT_COM_DUT": {
     "port": "COM14"

@@ -27,14 +27,13 @@ def run_step(log, config: configuration.AppConfig, update_percentage=lambda x: N
         return 0, return_msg
     else:
         if configuration.HASH_GIT == "DEBUG":
-            log(f"DEBUG mode: Using test paths for binaries.", "yellow")
-            path_btl = r"C:\CAPSYS banc de test\capsys_UIB_UIS\test_files\Bootloader_test.srec"
-            path_soft = r"C:\CAPSYS banc de test\capsys_UIB_UIS\test_files\Application_test.srec"
+            log(f"DEBUG mode: Using COM11.", "yellow")
             port = "COM11"
         else:
-            path_btl =  config.configItems.ble.path
-            path_soft = config.configItems.microcontroller.path
             port = config.configItems.dut.port
+        path_btl =  config.configItems.btl.path
+        path_soft = config.configItems.microcontroller.path
+            
         binaries = [
             {"path": path_btl, "log_key": "Bootloader"},
             {"path": path_soft, "log_key": "Application"},
