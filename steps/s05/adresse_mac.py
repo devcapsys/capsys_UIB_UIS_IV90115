@@ -32,7 +32,8 @@ def run_step(log, config: configuration.AppConfig, update_percentage=lambda x: N
         mac_address = configuration.request_user_input(
             config,
             "Mac Adresse",
-            "À l'aide du fichier C:\\Users\\tgerardin\\CAPSYS\\R&D - Documents\\99 - Divers\\Adresses MAC\\adresses MAC.xlsx, saisir l'adresse MAC du DUT (format: XX:XX:XX:XX:XX:XX) :"
+            "À l'aide du fichier C:\\R&D - Documents\\99 - Divers\\Adresses MAC\\adresses MAC.xlsx, saisir l'adresse MAC du DUT (format: XX:XX:XX:XX:XX:XX) :",
+            12
         )
         if mac_address is None:
             return_msg["infos"].append("L'utilisateur a annulé la saisie.")

@@ -164,7 +164,7 @@ def run_step(log, config: configuration.AppConfig, update_percentage=lambda x: N
         "Vérification",
         "Vérifier que :\n" \
         "- Le switch de programmation est vers le haut\n" \
-        "- L'interrupteur de test est vers le haut\n" \
+        "- Le switch de test est vers le haut\n" \
         "- Mettre en tension le banc\n" \
         "- Les LEDs vertes sont allumées\n" \
     )

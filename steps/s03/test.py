@@ -95,9 +95,10 @@ def run_step(log, config: configuration.AppConfig, update_percentage=lambda x: N
         "Vérification du chenillard et des LEDs rouges",
         "Vérifier que :\n" \
         "- Le chenillard est bon (16 LEDs)\n" \
-        "- La LED verte à gauche est allumée\n" \
+        "- La LED verte à gauche de la carte est allumée\n" \
         "- La LED qui clignote en 3 couleurs juste à côté est allumée\n" \
-        "- Les LEDs rouges sont allumées"
+        "- Les LEDs rouges sont allumées\n" \
+        "- La LED verte AT est allumée"
     )
     if chaser is None:
         return_msg["infos"].append("L'utilisateur a annulé la saisie.")
