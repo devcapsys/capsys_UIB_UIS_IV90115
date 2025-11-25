@@ -14,6 +14,7 @@ a = Analysis(
         ('logo-big.png', '.'),
         ('steps', 'steps'),
         ('modules/capsys_daq_manager', 'modules/capsys_daq_manager'),
+        ('modules/capsys_mac_manager', 'modules/capsys_mac_manager'),
         ('modules/capsys_mcp23017', 'modules/capsys_mcp23017'),
         ('modules/capsys_mysql_command', 'modules/capsys_mysql_command'),
         ('modules/capsys_pdf_report', 'modules/capsys_pdf_report'),
@@ -38,6 +39,7 @@ a = Analysis(
         
         # Custom modules
         'modules.capsys_daq_manager',
+        'modules.capsys_mac_manager',
         'modules.capsys_mcp23017',
         'modules.capsys_mcp23017.modules.capsys_bitbangi2c',
         'modules.capsys_mcp23017.modules.capsys_bitbangi2c.modules.capsys_daq_manager',
@@ -53,7 +55,10 @@ a = Analysis(
         
         # Step modules (dynamically loaded)
         'steps.s01.initialisation',
-        # Add others steps
+        'steps.s02.programmation',
+        'steps.s03.test',
+        'steps.s04.ethernet',
+        'steps.s05.adresse_mac'
         'steps.zz.fin_du_test',
         'unittest.mock',
     ] + mysql_hiddenimports + reportlab_hiddenimports,
