@@ -86,9 +86,15 @@ if __name__ == "__main__":
     from steps.s01.initialisation import run_step as run_step_init
     success_end, message_end = run_step_init(log_message, config)
     print(message_end)
+
+    if configuration.HASH_GIT == "DEBUG":
+        print("Mode DEBUG détecté : utilisation du port COM11 pour le DUT.")
+        port = "COM11"
+    else:
+        port = config.configItems.dut.port
     
     config.ser = serial.Serial(
-        port='COM11',
+        port=port,
         baudrate=115200,
         bytesize=serial.EIGHTBITS,
         parity=serial.PARITY_NONE,
