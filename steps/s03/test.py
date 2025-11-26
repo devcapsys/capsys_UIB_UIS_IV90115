@@ -26,8 +26,8 @@ def run_step(log, config: configuration.AppConfig, update_percentage=lambda x: N
 
     # Ouverture du port série
     if configuration.HASH_GIT == "DEBUG":
-        log(f"DEBUG mode: Using COM11 for serial communication.", "yellow")
-        port = "COM11"
+        log(f"DEBUG mode: Using COM14 for serial communication.", "yellow")
+        port = "COM14"
     else:
         port = config.configItems.dut.port
     try:
@@ -39,7 +39,7 @@ def run_step(log, config: configuration.AppConfig, update_percentage=lambda x: N
             stopbits=serial.STOPBITS_ONE,
             timeout=1
         )
-        log(f"Port série COM11 ouvert avec succès", "blue")
+        log(f"Port série 4 ouvert avec succès", "blue")
 
         # Envoi de la commande "test\n"
         command = "TEST\n"

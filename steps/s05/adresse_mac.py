@@ -97,8 +97,8 @@ if __name__ == "__main__":
     print(message_end)
 
     if configuration.HASH_GIT == "DEBUG":
-        print("Mode DEBUG détecté : utilisation du port COM11 pour le DUT.")
-        port = "COM11"
+        print("Mode DEBUG détecté : utilisation du port COM14 pour le DUT.")
+        port = "COM14"
     else:
         port = config.configItems.dut.port
     
