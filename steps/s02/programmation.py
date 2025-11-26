@@ -57,8 +57,8 @@ def run_step(log, config: configuration.AppConfig, update_percentage=lambda x: N
         return 0, return_msg
     else:
         if configuration.HASH_GIT == "DEBUG":
-            log(f"DEBUG mode: Using COM11.", "yellow")
-            port = "COM11"
+            log(f"DEBUG mode: Using COM14.", "yellow")
+            port = "COM14"
         else:
             port = config.configItems.dut.port
         path_btl = config.configItems.btl.path
@@ -158,15 +158,6 @@ def run_step(log, config: configuration.AppConfig, update_percentage=lambda x: N
             )
             if result.returncode != 0:
                 return 1, f"Error programming file: {binary['path']}"
-        
-        prog_end = configuration.request_user_input(
-        config,
-        "Fin de programmation du DUT",
-        "Placer le switch de programmation vers le bas et rallumer le banc."
-        )
-        if prog_end is None:
-            return_msg["infos"].append("L'utilisateur a annulé la saisie.")
-            return 1, return_msg
 
         return_msg["infos"].append("Étape OK")
         return 0, return_msg
