@@ -22,12 +22,21 @@ def run_step(log, config: configuration.AppConfig, update_percentage=lambda x: N
     step_name_id = config.db.create("step_name", {"device_under_test_id": config.device_under_test_id, "step_name": step_name})
     ###################################################################
     
-    time.sleep(1)  # Attendre une seconde avant d'ouvrir le port série
+    msg = configuration.request_user_input(
+    config,
+    "Teste du DUT",
+    "Placer le switch de programmation vers le bas et rallumer le banc."
+    )
+    if msg is None:
+        return_msg["infos"].append("L'utilisateur a annulé la saisie.")
+        return 1, return_msg
+    
+    time.sleep(3)  # Attendre une seconde avant d'ouvrir le port série
 
     # Ouverture du port série
     if configuration.HASH_GIT == "DEBUG":
-        log(f"DEBUG mode: Using COM14 for serial communication.", "yellow")
-        port = "COM14"
+        log(f"DEBUG mode: Using COM11 for serial communication.", "yellow")
+        port = "COM11"
     else:
         port = config.configItems.dut.port
     try:

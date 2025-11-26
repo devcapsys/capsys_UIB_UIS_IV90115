@@ -57,8 +57,8 @@ def run_step(log, config: configuration.AppConfig, update_percentage=lambda x: N
         return 0, return_msg
     else:
         if configuration.HASH_GIT == "DEBUG":
-            log(f"DEBUG mode: Using COM14.", "yellow")
-            port = "COM14"
+            log(f"DEBUG mode: Using COM11.", "yellow")
+            port = "COM11"
         else:
             port = config.configItems.dut.port
         path_btl = config.configItems.btl.path
@@ -79,7 +79,8 @@ def run_step(log, config: configuration.AppConfig, update_percentage=lambda x: N
             config,
             "Programmation",
             "Est-ce que la programmation a déjà été effectuée ?\n" \
-            "- Si OUI, écrivez oui"
+            "- Si OUI, écrivez oui puis appuyer sur entrée\n" \
+            "- Si NON, appuyer sur OK"
         )
         if msg is None:
             return_msg["infos"].append("L'utilisateur a annulé la saisie.")

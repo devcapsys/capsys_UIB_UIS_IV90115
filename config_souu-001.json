@@ -15,6 +15,6 @@
     "path": "T:\\SW\\00\\083\\A\\SW00083_A01r_UIB_APP.hex"
   },
   "PORT_COM_DUT": {
-    "port": "COM14"
+    "port": "COM11"
   }
 }
