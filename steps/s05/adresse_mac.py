@@ -1,14 +1,12 @@
 # -*- coding: utf-8 -*-
 
-import sys, os, re, time, serial, datetime
-from unittest import result
+import sys, os, re, time, serial
 if __name__ == "__main__":
     BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
     if BASE_DIR not in sys.path:
         sys.path.insert(0, BASE_DIR)
 import configuration  # Custom
 from modules.capsys_mysql_command.capsys_mysql_command import (GenericDatabaseManager, DatabaseConfig) # Custom
-from modules.capsys_mac_manager.capsys_mac_manager import MACManager # Custom
 
 def get_info():
     return "Cette étape teste les seuils de fonctionnement du radar."
@@ -30,30 +28,25 @@ def run_step(log, config: configuration.AppConfig, update_percentage=lambda x: N
     
     mac_pattern = re.compile(r'^([0-9A-Fa-f]{2}:){5}([0-9A-Fa-f]{2})$')
     
-    date = datetime.datetime.now().strftime("%Y-%m-%d")
-    mac_address = ""
-    try:
-        with MACManager(config.configItems.mac_adress_file.path, "attributions MAC address") as manager:
-            mac_address = manager.assign_mac(
-                product=config.arg.article,
-                delivery_date=date,
-                bl=config.arg.commande
-            )
-            print(f"Assignment successful!")
-    except Exception as e:
-        print(f"Error: {e}")
-    
-    if mac_address != "":
-        if not mac_pattern.match(mac_address['mac_address']):
-            return_msg["infos"].append(f"L'adresse MAC assignée ({mac_address['mac_address']}) ne correspond pas au format attendu.")
+    while True:
+        mac_address = configuration.request_user_input(
+            config,
+            "Mac Adresse",
+            "À l'aide du fichier C:\\R&D - Documents\\99 - Divers\\Adresses MAC\\adresses MAC.xlsx, saisir l'adresse MAC du DUT (format: XX:XX:XX:XX:XX:XX) :",
+            12
+        )
+        if mac_address is None:
+            return_msg["infos"].append("L'utilisateur a annulé la saisie.")
             return 1, return_msg
+        
+        # Validation du format de l'adresse MAC
+        if mac_pattern.match(mac_address):
+            log(f"Adresse MAC saisie : {mac_address}", "blue")
+            break
         else:
-            log(f"MAC adresse : {mac_address['mac_address']} ligne {mac_address['row']}", "blue")
-    else:
-        return_msg["infos"].append("Aucune adresse MAC n'a pu être assignée.")
-        return 1, return_msg
-    
-    config.ser.write(f"TEST MAC={mac_address['mac_address']}\r".encode('utf-8'))
+            log(f"Format d'adresse MAC invalide : {mac_address}. Veuillez utiliser le format XX:XX:XX:XX:XX:XX", "red")
+
+    config.ser.write(f"TEST MAC={mac_address}\r".encode('utf-8'))
     time.sleep(0.5)  # Attendre une demi-seconde pour que le DUT traite la commande
     response = config.ser.readline().decode('utf-8').strip()
     if "OK" not in response:
@@ -63,14 +56,13 @@ def run_step(log, config: configuration.AppConfig, update_percentage=lambda x: N
     config.ser.write(f"TEST MAC\r".encode('utf-8'))
     time.sleep(0.5)  # Attendre une demi-seconde pour que le DUT traite la commande
     response = config.ser.readline().decode('utf-8').strip()
-    if mac_address['mac_address'] not in response:
-        return_msg["infos"].append(f"L'adresse MAC lue du DUT ({response}) ne correspond pas à l'adresse configurée ({mac_address['mac_address']}).")
+    if mac_address not in response:
+        return_msg["infos"].append(f"L'adresse MAC lue du DUT ({response}) ne correspond pas à l'adresse configurée ({mac_address}).")
         return 1, return_msg
     else:
         log(f"Adresse MAC {response} vérifiée avec succès sur le DUT.", "blue")
 
-    config.save_value(step_name_id, "mac_address_line", mac_address['row'], valid=1)
-    config.save_value(step_name_id, "mac_address", mac_address['mac_address'], valid=1)
+    config.save_value(step_name_id, "mac_address", mac_address, valid=1)
 
     return_msg["infos"].append("Étape OK")
     return 0, return_msg

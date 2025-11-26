@@ -12,7 +12,7 @@ from datetime import datetime
 import logging, ctypes, tempfile, json
 from modules.capsys_pdf_report.capsys_pdf_report import DeviceReport  # Custom
 from modules.capsys_wrapper_tm_t20iii.capsys_wrapper_tm_t20III import PrinterDC  # Custom
-from modules.capsys_mac_manager.capsys_mac_manager import MACManager  # Custom - Import to ensure PyInstaller includes it
+# from modules.capsys_mac_manager.capsys_mac_manager import MACManager  # Custom - Import to ensure PyInstaller includes it
 import configuration  # Custom
 
 # Global config object

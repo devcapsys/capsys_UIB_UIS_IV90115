@@ -2,7 +2,7 @@ import os, serial, atexit
 from typing import Optional, Any
 from modules.capsys_mysql_command.capsys_mysql_command import (GenericDatabaseManager, DatabaseConfig) # Custom
 from modules.capsys_wrapper_tm_t20iii.capsys_wrapper_tm_t20III import PrinterDC  # Custom
-from modules.capsys_mac_manager.capsys_mac_manager import MACManager # Custom
+# from modules.capsys_mac_manager.capsys_mac_manager import MACManager # Custom
 
 # Initialize global variables
 CURRENTH_PATH = os.path.dirname(__file__)
@@ -138,7 +138,6 @@ class AppConfig:
         self.device_under_test_id: Optional[int] = None
         self.configItems = ConfigItems()
         self.printer: Optional[PrinterDC] = None
-        self.mac_manager: Optional[MACManager] = None
         self.ser: Optional[serial.Serial] = None
         atexit.register(self.cleanup) # Register cleanup function to be called on exit
 
