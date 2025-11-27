@@ -32,42 +32,68 @@ def run_step(log, config: configuration.AppConfig, update_percentage=lambda x: N
     
     date = datetime.datetime.now().strftime("%Y-%m-%d")
     mac_address = ""
+    manager = None
     try:
-        with MACManager(config.configItems.mac_adress_file.path, "attributions MAC address") as manager:
-            mac_address = manager.assign_mac(
-                product=config.arg.article,
-                delivery_date=date,
-                bl=config.arg.commande
-            )
-            print(f"Assignment successful!")
+        manager = MACManager(config.configItems.mac_adress_file.path, "attributions MAC address")
+        manager.open_file()
+        mac_address = manager.assign_mac(
+            product=config.arg.article,
+            delivery_date=date,
+            bl=config.arg.commande
+        )
+        print(f"Assignment successful!")
     except Exception as e:
         print(f"Error: {e}")
+        if manager:
+            manager.close()
+        return_msg["infos"].append(f"Erreur lors de l'assignation de l'adresse MAC: {e}")
+        return 1, return_msg
     
     if mac_address != "":
         if not mac_pattern.match(mac_address['mac_address']):
+            if manager:
+                manager.close()
             return_msg["infos"].append(f"L'adresse MAC assignée ({mac_address['mac_address']}) ne correspond pas au format attendu.")
             return 1, return_msg
         else:
             log(f"MAC adresse : {mac_address['mac_address']} ligne {mac_address['row']}", "blue")
     else:
+        if manager:
+            manager.close()
         return_msg["infos"].append("Aucune adresse MAC n'a pu être assignée.")
         return 1, return_msg
     
+    # Configuration de l'adresse MAC sur le DUT
     config.ser.write(f"TEST MAC={mac_address['mac_address']}\r".encode('utf-8'))
-    time.sleep(1)  # Attendre une demi-seconde pour que le DUT traite la commande
+    time.sleep(1)
     response = config.ser.readline().decode('utf-8').strip()
     if "OK" not in response:
+        if manager:
+            manager.close()
         return_msg["infos"].append(f"Erreur lors de la configuration de l'adresse MAC sur le DUT.")
         return 1, return_msg
 
+    # Vérification de l'adresse MAC sur le DUT
     config.ser.write(f"TEST MAC\r".encode('utf-8'))
-    time.sleep(1)  # Attendre une demi-seconde pour que le DUT traite la commande
+    time.sleep(1)
     response = config.ser.readline().decode('utf-8').strip()
     if mac_address['mac_address'] not in response:
+        if manager:
+            manager.close()
         return_msg["infos"].append(f"L'adresse MAC lue du DUT ({response}) ne correspond pas à l'adresse configurée ({mac_address['mac_address']}).")
         return 1, return_msg
     else:
         log(f"Adresse MAC {response} vérifiée avec succès sur le DUT.", "blue")
+    
+    # Sauvegarder dans Excel seulement après vérification réussie
+    try:
+        manager.save()
+        manager.close()
+    except Exception as e:
+        if manager:
+            manager.close()
+        return_msg["infos"].append(f"Erreur lors de la sauvegarde de l'adresse MAC dans Excel: {e}")
+        return 1, return_msg
 
     config.save_value(step_name_id, "mac_address_line", mac_address['row'], valid=1)
     config.save_value(step_name_id, "mac_address", mac_address['mac_address'], valid=1)
