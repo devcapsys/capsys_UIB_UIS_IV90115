@@ -19,3 +19,6 @@
 [submodule "modules/capsys_mac_manager"]
 	path = modules/capsys_mac_manager
 	url = https://github.com/devcapsys/capsys_mac_manager
+[submodule "modules/capsys_brady_manager"]
+	path = modules/capsys_brady_manager
+	url = https://github.com/devcapsys/capsys_brady_manager

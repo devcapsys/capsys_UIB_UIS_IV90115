@@ -7,6 +7,7 @@ if __name__ == "__main__":
 from datetime import datetime
 import configuration  # Custom
 from modules.capsys_mysql_command.capsys_mysql_command import (GenericDatabaseManager, DatabaseConfig, Operator) # Custom
+from modules.capsys_brady_manager.capsys_brady_manager import BradyBP12Printer  # Custom
 from configuration import VERSION, get_project_path
 
 def get_info():
@@ -158,6 +159,8 @@ def run_step(log, config: configuration.AppConfig, update_percentage=lambda x: N
     if status != 0:
         return_msg["infos"].append(f"{step_name_id}")
         return status, return_msg
+
+    config.printer_brady = BradyBP12Printer()
 
     msg = configuration.request_user_input(
         config,

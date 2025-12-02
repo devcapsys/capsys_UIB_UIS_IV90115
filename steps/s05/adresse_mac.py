@@ -27,6 +27,10 @@ def run_step(log, config: configuration.AppConfig, update_percentage=lambda x: N
         return_msg["infos"].append("Le port série n'est pas ouvert.")
         return 1, return_msg
     
+    if config.printer_brady is None:
+        return_msg["infos"].append("L'imprimante Brady n'est pas initialisée.")
+        return 1, return_msg
+
     mac_pattern = re.compile(r'^([0-9A-Fa-f]{2}:){5}([0-9A-Fa-f]{2})$')
     
     # Vérification si une adresse MAC existe déjà sur le DUT
@@ -116,6 +120,11 @@ def run_step(log, config: configuration.AppConfig, update_percentage=lambda x: N
 
     config.save_value(step_name_id, "mac_address_line", mac_address['row'], valid=1)
     config.save_value(step_name_id, "mac_address", mac_address['mac_address'], valid=1)
+    
+    # Print label with Brady printer
+    date = datetime.datetime.now().strftime("%Y-%m-%d")
+    messages = ["CAPSYS", date, f"ID: {config.device_under_test_id}", config.arg.article + config.arg.indice, configuration.HASH_GIT]
+    config.printer_brady.print_label(messages, qrcode=config.device_under_test_id, nb_copies=1)
 
     return_msg["infos"].append("Étape OK")
     return 0, return_msg
