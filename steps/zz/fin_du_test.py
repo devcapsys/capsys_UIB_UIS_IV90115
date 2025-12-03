@@ -22,15 +22,6 @@ def run_step(log, config: configuration.AppConfig, update_percentage=lambda x: N
     config.db.create("step_name", {"device_under_test_id": config.device_under_test_id, "step_name": step_name})
     success = 0
 
-    # Close serial port if open
-    if hasattr(config, 'ser') and config.ser is not None and config.ser.is_open:
-        try:
-            config.ser.close()
-            log("Port série fermé.", "blue")
-        except Exception as e:
-            log(f"Erreur lors de la fermeture du port série : {e}", "yellow")
-            success = 2
-
     # delete config.json file
     config_file_path = get_project_path("config.json")
     if os.path.exists(config_file_path):
@@ -39,6 +30,32 @@ def run_step(log, config: configuration.AppConfig, update_percentage=lambda x: N
     else:
         log("Problème lors de la suppression du fichier config.json.", "yellow")
         success = 2
+        
+    # Close serial port if open
+    if hasattr(config, 'serDut') and config.serDut is not None and config.serDut.is_connected():
+        try:
+            config.serDut.close()
+            log("Port série fermé.", "blue")
+        except Exception as e:
+            log(f"Erreur lors de la fermeture du port série : {e}", "yellow")
+            success = 2
+
+    # Close mcp23017
+    if config.mcp_manager is None:
+        success = 2
+        log("Le MCP23017 n'avait pas été initialisé.", "yellow")
+    else:
+        for pin in configuration.MCP23017Pin:
+            config.mcp_manager.digital_write(pin, False)
+        log("Le MCP23017 a été réinitialisé.", "blue")
+    
+    # Close daq
+    if config.daq_port == None or config.daq_manager == None:
+        return 2, "Le DAQ n'avait pas été initialisé."
+    else:
+        config.daq_manager.close_all()
+        config.daq_manager = None
+        log("Le DAQ a été fermé.", "blue")
 
     if success == 0:
         return_msg["infos"].append("Nettoyage effectué avec succès.")

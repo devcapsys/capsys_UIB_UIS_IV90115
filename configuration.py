@@ -1,8 +1,12 @@
 import os, serial, atexit
+from enum import Enum
 from typing import Optional, Any
 from modules.capsys_mysql_command.capsys_mysql_command import (GenericDatabaseManager, DatabaseConfig) # Custom
 from modules.capsys_wrapper_tm_t20iii.capsys_wrapper_tm_t20III import PrinterDC  # Custom
 from modules.capsys_brady_manager.capsys_brady_manager import BradyBP12Printer  # Custom
+from modules.capsys_daq_manager.capsys_daq_manager import DAQManager  # Custom
+from modules.capsys_mcp23017.capsys_mcp23017 import MCP23017, MCP23017Manager  # Custom
+from modules.capsys_serial_instrument_manager.capsys_serial_instrument_manager import SerialInstrumentManager  # Custom
 
 # Initialize global variables
 CURRENTH_PATH = os.path.dirname(__file__)
@@ -55,7 +59,77 @@ def request_user_input(config, title: str, message: str, font_size: int = 14) ->
         # Debug mode with console input
         user_text = input(message + " ")
         return user_text if user_text else None
+
+class SerialUsbDut(SerialInstrumentManager):
+    def __init__(self, port=None, baudrate=115200, timeout=1, debug=False):
+        SerialInstrumentManager.__init__(self, port, baudrate, timeout, debug)
+        self._debug_log("DUT initialized")
+
+    def get_valid(self, sn=None) -> bool:
+        # TODO
+        return True
     
+    def send_command_Cr(self, command: str, expected_response: str = "", exact_match: bool = False, timeout: float = 0, read_until: str = "") -> str:
+        return super().send_command(command + "\n", expected_response, exact_match, timeout, read_until)
+    
+class DAQPin(Enum):
+    """
+    Enumerates DAQ USB 6000 pin assignments for various signals and measurements.
+    https://www.ni.com/fr-fr/shop/model/usb-6000.html
+    """
+    I2C_SCL = "port0/line0"  # SCL (clock) – yellow wire
+    I2C_SDA_OUT = "port0/line1"  # SDA output – blue wire
+    I2C_SDA_IN = "port0/line2"  # SDA input – blue wire - read for ACK
+    P03 = "port0/line3"  # General purpose digital I/O 3
+    AI0 = "ai0"  # General purpose analog input 0
+    AI1 = "ai1"  # General purpose analog input 1
+    AI2 = "ai2"  # General purpose analog input 2
+    AI3 = "ai3"  # General purpose analog input 3
+    AI4 = "ai4"  # General purpose analog input 4
+    AI5 = "ai5"  # General purpose analog input 5
+    AI6 = "ai6"  # General purpose analog input 6
+    AI7 = "ai7"  # General purpose analog input 7
+
+class MCP23017Pin(Enum):
+    """
+    Enumerates MCP23017 I2C GPIO expander pin assignments for power and control signals.
+    https://www.adafruit.com/product/5346
+    """
+    A0 = (0x20, MCP23017.Pin.A0, 'out')  # Pin A0
+    A1 = (0x20, MCP23017.Pin.A1, 'out')  # Pin A1
+    A2 = (0x20, MCP23017.Pin.A2, 'out')  # Pin A2
+    A3 = (0x20, MCP23017.Pin.A3, 'out')  # Pin A3
+    A4 = (0x20, MCP23017.Pin.A4, 'out')  # Pin A4
+    A5 = (0x20, MCP23017.Pin.A5, 'out')  # Pin A5
+    A6 = (0x20, MCP23017.Pin.A6, 'out')  # Pin A6
+    A7 = (0x20, MCP23017.Pin.A7, 'out')  # Pin A7
+    B0 = (0x20, MCP23017.Pin.B0, 'out')  # Pin B0
+    B1 = (0x20, MCP23017.Pin.B1, 'out')  # Pin B1
+    B2 = (0x20, MCP23017.Pin.B2, 'out')  # Pin B2
+    B3 = (0x20, MCP23017.Pin.B3, 'out')  # Pin B3
+    B4 = (0x20, MCP23017.Pin.B4, 'out')  # Pin B4
+    B5 = (0x20, MCP23017.Pin.B5, 'out')  # Pin B5
+    B6 = (0x20, MCP23017.Pin.B6, 'out')  # Pin B6
+    B7 = (0x20, MCP23017.Pin.B7, 'out')  # Pin B7    
+
+    def __init__(self, mcp_addr, pin, mode):
+        self.mcp_addr = mcp_addr
+        self.pin = pin
+        self.mode = mode
+
+class commands(Enum):
+    """
+    Enumerates commands for the serial communication with the DUT.
+    Each command includes its expected response pattern.
+    """
+    class CommandResponse:
+        """Represents a command-response pair for DUT communication."""
+        def __init__(self, command: str, answer: str = ""):
+            self.command = command
+            self.answer = answer
+    
+    # TEST_PROD_INIT = CommandResponse("test prod")
+
 class ConfigItems:
     """Container for all configuration items used in the test sequence."""
     key_map = {
@@ -137,18 +211,24 @@ class AppConfig:
         self.db: Optional[GenericDatabaseManager] = None
         self.device_under_test_id: Optional[int] = None
         self.configItems = ConfigItems()
+        self.daq_port: Optional[str] = None
+        self.daq_manager: Optional[DAQManager] = None
+        self.mcp_manager: Optional[MCP23017Manager] = None
+        self.serDut: Optional[SerialUsbDut] = None
         self.printer: Optional[PrinterDC] = None
         self.printer_brady: Optional[BradyBP12Printer] = None
-        self.ser: Optional[serial.Serial] = None
         atexit.register(self.cleanup) # Register cleanup function to be called on exit
 
     def cleanup(self):
         if self.db:
             self.db.disconnect()
             self.db = None
-        if self.ser and self.ser.is_open:
-            self.ser.close()
-            self.ser = None
+        if self.daq_manager:
+            self.daq_manager.close_all()
+            self.daq_manager = None
+        if self.serDut and self.serDut.is_connected():
+            self.serDut.close()
+            self.serDut = None
         self.device_under_test_id = None
         
     def save_value(self, step_name_id: int, key: str, value, unit: str = "", min_value: Optional[float] = None, max_value: Optional[float] = None, valid: int = 0):

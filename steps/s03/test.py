@@ -37,7 +37,7 @@ def run_step(log, config: configuration.AppConfig, update_percentage=lambda x: N
             return_msg["infos"].append("L'utilisateur a annulé la saisie.")
             return 1, return_msg
     
-        time.sleep(3)  # Attendre une seconde avant d'ouvrir le port série
+        time.sleep(3)  # Attendre 3 secondes avant d'ouvrir le port série
         
         if retry_count > 0:
             log(f"Tentative {retry_count + 1}/{max_retries}", "yellow")
@@ -50,104 +50,82 @@ def run_step(log, config: configuration.AppConfig, update_percentage=lambda x: N
             port = config.configItems.dut.port
         
         try:
-            config.ser = serial.Serial(
-                port=port,
-                baudrate=115200,
-                bytesize=serial.EIGHTBITS,
-                parity=serial.PARITY_NONE,
-                stopbits=serial.STOPBITS_ONE,
-                timeout=1
-            )
-            log(f"Port série 4 ouvert avec succès", "blue")
+            config.serDut = configuration.SerialUsbDut(port=port)
+            config.serDut.open_with_port(port)
+            log(f"Port {port} ouvert avec succès", "blue")
 
-            # Envoi de la commande "test\n"
-            command = "TEST\n"
-            config.ser.write(command.encode('utf-8'))
-            log(f"Commande envoyée: {command.strip()}", "blue")
-            
-            # Lecture de la réponse complète et attente du READY
-            response_lines = []
-            ready_received = False
-            timeout_counter = 0
-            max_timeout = 100  # 10 secondes maximum (100 * 0.1s)
-            
-            while not ready_received and timeout_counter < max_timeout:
-                if config.ser.in_waiting > 0:
-                    line = config.ser.readline().decode('utf-8').strip()
-                    if line:
-                        response_lines.append(line)
-                        log(f"Réponse: {line}", "blue")
-                        if line == "READY":
-                            ready_received = True
+            try:
+                # Envoi de la commande "TEST"
+                command = "TEST"
+                answer = config.serDut.send_command_Cr(command, read_until="READY")
+                log(f"{command.strip()} envoyé, {answer} reçu", "blue")
+
+                response_lines = answer.strip().splitlines()
+
+                # Vérification que toutes les lignes de test se terminent par "OK"
+                # On ignore "TEST EN COURS" qui est juste un message d'information
+                test_failed = False
+                failed_tests = []
+                for line in response_lines:
+                    # Ignorer les lignes qui ne sont pas des résultats de test
+                    if line in ["TEST EN COURS", "READY"]:
+                        continue
+                    # Vérifier que les lignes de test se terminent par "OK" et PAS par "NOK"
+                    if line.startswith("TEST"):
+                        if not line.endswith("OK"):
+                            failed_tests.append(line)
+                            test_failed = True
+                
+                if test_failed:
+                    log(f"Tests échoués: {', '.join(failed_tests)}", "red")
+                    retry_count += 1
+                    
+                    if retry_count < max_retries:
+                        retry_msg = configuration.request_user_input(
+                            config,
+                            "Tests échoués",
+                            f"Tests échoués: {', '.join(failed_tests)}\nTentative {retry_count}/{max_retries}.\nVoulez-vous réessayer ? (Appuyez sur Entrée pour continuer ou Annuler)"
+                        )
+                        if retry_msg is None:
+                            for test in failed_tests:
+                                return_msg["infos"].append(f"Test échoué: {test}")
+                            return 1, return_msg
+                    else:
+                        for test in failed_tests:
+                            return_msg["infos"].append(f"Test échoué: {test}")
+                        return 1, return_msg
                 else:
-                    time.sleep(0.1)
-                    timeout_counter += 1
-            
-            # Vérification que READY a été reçu
-            if not ready_received:
-                log("Erreur: READY non reçu", "red")
+                    # Si on arrive ici, le test est réussi
+                    test_success = True
+                    
+            except serial.SerialException as e:
+                log(f"Erreur de communication: {e}", "red")
                 retry_count += 1
-                if config.ser and config.ser.is_open:
-                    config.ser.close()
                 
                 if retry_count < max_retries:
                     retry_msg = configuration.request_user_input(
                         config,
                         "Erreur de communication",
-                        f"READY non reçu. Tentative {retry_count}/{max_retries}.\nVoulez-vous réessayer ? (Appuyez sur Entrée pour continuer ou Annuler)"
+                        f"READY non reçu ou erreur de communication.\nTentative {retry_count}/{max_retries}.\nVoulez-vous réessayer ? (Appuyez sur Entrée pour continuer ou Annuler)"
                     )
                     if retry_msg is None:
-                        return_msg["infos"].append("L'utilisateur a annulé le retry.")
+                        return_msg["infos"].append(f"Erreur de communication: {e}")
                         return 1, return_msg
-                    continue
                 else:
-                    return_msg["infos"].append("Erreur: READY non reçu après plusieurs tentatives")
+                    return_msg["infos"].append(f"Erreur de communication: {e}")
                     return 1, return_msg
-            
-            # Vérification que toutes les lignes de test se terminent par "OK"
-            # On ignore "TEST EN COURS" qui est juste un message d'information
-            test_failed = False
-            failed_tests = []
-            for line in response_lines:
-                # Ignorer les lignes qui ne sont pas des résultats de test
-                if line in ["TEST EN COURS", "READY"]:
-                    continue
-                # Vérifier que les lignes de test se terminent par "OK" et PAS par "NOK"
-                if line.startswith("TEST"):
-                    if not line.endswith("OK") or line.endswith("NOK"):
-                        failed_tests.append(line)
-                        test_failed = True
-            
-            if test_failed:
-                log(f"Tests échoués: {', '.join(failed_tests)}", "red")
-                retry_count += 1
-                if config.ser and config.ser.is_open:
-                    config.ser.close()
-                
-                if retry_count < max_retries:
-                    retry_msg = configuration.request_user_input(
-                        config,
-                        "Tests échoués",
-                        f"Tests échoués: {', '.join(failed_tests)}\nTentative {retry_count}/{max_retries}.\nVoulez-vous réessayer ? (Appuyez sur Entrée pour continuer ou Annuler)"
-                    )
-                    if retry_msg is None:
-                        for test in failed_tests:
-                            return_msg["infos"].append(f"Test échoué: {test}")
-                        return 1, return_msg
-                    continue
-                else:
-                    for test in failed_tests:
-                        return_msg["infos"].append(f"Test échoué: {test}")
-                    return 1, return_msg
-            
-            # Si on arrive ici, le test est réussi
-            test_success = True
-            
+            finally:
+                # Fermer le port série dans tous les cas
+                if hasattr(config, 'serDut') and config.serDut is not None:
+                    try:
+                        config.serDut.close()
+                        log(f"Port {port} fermé", "blue")
+                    except:
+                        pass
+                        
         except serial.SerialException as e:
             log(f"Erreur port série: {e}", "red")
             retry_count += 1
-            if config.ser and config.ser.is_open:
-                config.ser.close()
             
             if retry_count < max_retries:
                 retry_msg = configuration.request_user_input(
@@ -158,7 +136,6 @@ def run_step(log, config: configuration.AppConfig, update_percentage=lambda x: N
                 if retry_msg is None:
                     return_msg["infos"].append(f"Erreur port série: {e}")
                     return 1, return_msg
-                continue
             else:
                 return_msg["infos"].append(f"Erreur port série: {e}")
                 return 1, return_msg

@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 
-import sys, os, re, time, serial, datetime
+import sys, os, re, time, datetime
 if __name__ == "__main__":
     BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
     if BASE_DIR not in sys.path:
         sys.path.insert(0, BASE_DIR)
 import configuration  # Custom
+from configuration import SerialUsbDut  # Custom
 from modules.capsys_mysql_command.capsys_mysql_command import (GenericDatabaseManager, DatabaseConfig) # Custom
 from modules.capsys_mac_manager.capsys_mac_manager import MACManager # Custom
 
@@ -23,7 +24,7 @@ def run_step(log, config: configuration.AppConfig, update_percentage=lambda x: N
     step_name_id = config.db.create("step_name", {"device_under_test_id": config.device_under_test_id, "step_name": step_name})
     ###################################################################
 
-    if config.ser is None or not config.ser.is_open:
+    if config.serDut is None or not config.serDut.is_connected():
         return_msg["infos"].append("Le port série n'est pas ouvert.")
         return 1, return_msg
     
@@ -34,9 +35,7 @@ def run_step(log, config: configuration.AppConfig, update_percentage=lambda x: N
     mac_pattern = re.compile(r'^([0-9A-Fa-f]{2}:){5}([0-9A-Fa-f]{2})$')
     
     # Vérification si une adresse MAC existe déjà sur le DUT
-    config.ser.write(f"TEST MAC\r".encode('utf-8'))
-    time.sleep(1)
-    response = config.ser.readline().decode('utf-8').strip()
+    response = config.serDut.send_command_Cr("TEST MAC", timeout=1.0)
     
     # Si une adresse MAC valide existe déjà, on l'utilise
     existing_mac = None
@@ -87,9 +86,7 @@ def run_step(log, config: configuration.AppConfig, update_percentage=lambda x: N
         return 1, return_msg
     
     # Configuration de l'adresse MAC sur le DUT
-    config.ser.write(f"TEST MAC={mac_address['mac_address']}\r".encode('utf-8'))
-    time.sleep(1)
-    response = config.ser.readline().decode('utf-8').strip()
+    response = config.serDut.send_command_Cr(f"TEST MAC={mac_address['mac_address']}", timeout=1.0)
     if "OK" not in response:
         if manager:
             manager.close()
@@ -97,9 +94,7 @@ def run_step(log, config: configuration.AppConfig, update_percentage=lambda x: N
         return 1, return_msg
 
     # Vérification de l'adresse MAC sur le DUT
-    config.ser.write(f"TEST MAC\r".encode('utf-8'))
-    time.sleep(1)
-    response = config.ser.readline().decode('utf-8').strip()
+    response = config.serDut.send_command_Cr("TEST MAC", timeout=1.0)
     if mac_address['mac_address'] not in response:
         if manager:
             manager.close()
@@ -125,6 +120,7 @@ def run_step(log, config: configuration.AppConfig, update_percentage=lambda x: N
     date = datetime.datetime.now().strftime("%Y-%m-%d")
     messages = ["CAPSYS", date, f"ID: {config.device_under_test_id}", config.arg.article + config.arg.indice, configuration.HASH_GIT]
     config.printer_brady.print_label(messages, qrcode=config.device_under_test_id, nb_copies=1)
+    config.save_value(step_name_id, "label_printed", messages, valid=1)
 
     return_msg["infos"].append("Étape OK")
     return 0, return_msg
@@ -156,13 +152,11 @@ if __name__ == "__main__":
     else:
         port = config.configItems.dut.port
     
-    config.ser = serial.Serial(
+    config.serDut = SerialUsbDut(
         port=port,
         baudrate=115200,
-        bytesize=serial.EIGHTBITS,
-        parity=serial.PARITY_NONE,
-        stopbits=serial.STOPBITS_ONE,
-        timeout=1
+        timeout=1,
+        debug=False
     )
 
     # Launch this step

@@ -4,10 +4,12 @@ if __name__ == "__main__":
     BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
     if BASE_DIR not in sys.path:
         sys.path.insert(0, BASE_DIR)
-from datetime import datetime
+from datetime import datetime, timedelta
 import configuration  # Custom
 from modules.capsys_mysql_command.capsys_mysql_command import (GenericDatabaseManager, DatabaseConfig, Operator) # Custom
 from modules.capsys_brady_manager.capsys_brady_manager import BradyBP12Printer  # Custom
+from modules.capsys_daq_manager.capsys_daq_manager import DAQManager  # Custom
+from modules.capsys_mcp23017.capsys_mcp23017 import BitBangI2C, MCP23017Manager  # Custom
 from configuration import VERSION, get_project_path
 
 def get_info():
@@ -150,6 +152,82 @@ def init_database_and_checks(log, config: configuration.AppConfig, update_percen
     config.save_value(step_name_id, "id_fichier_config", id)
 
     return 0, step_name_id
+
+def connect_daq(config: configuration.AppConfig, step_name_id):
+    # Ensure db is initialized
+    if not hasattr(config, "db") or config.db is None:
+        return 1, "Erreur : config.db n'est pas initialisé."
+
+    # Initialize DAQManager
+    daq_manager_local = DAQManager(debug=config.arg.show_all_logs)
+
+    # List all available DAQ devices
+    available_devices = daq_manager_local.list_available_devices()
+    if not available_devices:
+        return 1, "Aucun appareil NI détecté."
+
+    # Check if USB-6000 is present
+    for device_name in available_devices:
+        daq_manager_local.add_device(device_name)
+        device_info = daq_manager_local.show_device_info(device_name)
+        if device_info and device_info.get("product_type") == "USB-6000":
+            config.daq_port = device_name
+            break
+        else:
+            daq_manager_local.remove_device(device_name)
+    if config.daq_port is None:
+        return 1, "Aucun appareil USB-6000 détecté."
+
+    config.daq_manager = daq_manager_local
+    config.daq_manager.close_all()  # If any task are left in the daq, we remove them
+
+    # Check calibration date (allow if missing)
+    device_info = config.daq_manager.show_device_info(config.daq_port)
+    if not device_info:
+        return (1, f"Impossible de lire les informations du périphérique {config.daq_port}.")
+    product_type = device_info.get("product_type")
+    serial_number = device_info.get("serial_number")
+    calibration_date = device_info.get("calibration_date")
+
+    status_code = 0  # Default status: OK
+    if calibration_date is not None:
+        current_date = datetime.now()
+        if current_date > calibration_date + timedelta(days=365):
+            status_code = 2  # Calibration expired
+
+    # Create tasks for the whole test
+    config.daq_manager.create_do_task(config.daq_port, configuration.DAQPin.I2C_SDA_OUT.value)
+    config.daq_manager.create_di_task(config.daq_port, configuration.DAQPin.I2C_SDA_IN.value)
+    config.daq_manager.create_do_task(config.daq_port, configuration.DAQPin.I2C_SCL.value)
+
+    return_msg = f"Config DAQ : Port : {config.daq_port} ; Model : {product_type} ; SN : {serial_number} ; Calibration : {calibration_date}"
+    return status_code, return_msg
+
+def init_mcp23017(config: configuration.AppConfig, step_name_id):
+    # Ensure db is initialized
+    if not hasattr(config, "db") or config.db is None:
+        return 1, "Erreur : config.db n'est pas initialisé."
+
+    if config.daq_port == None or config.daq_manager == None:
+        return 1, "NOK"
+
+    # Create a single I2C interface that will be shared by both MCP23017 devices
+    i2c_interface = BitBangI2C(
+        sda_out_device=config.daq_port,
+        sda_out_line=configuration.DAQPin.I2C_SDA_OUT.value,
+        sda_in_device=config.daq_port,
+        sda_in_line=configuration.DAQPin.I2C_SDA_IN.value,
+        scl_device=config.daq_port,
+        scl_line=configuration.DAQPin.I2C_SCL.value,
+        daq_manager=config.daq_manager,
+        debug=config.arg.show_all_logs,
+    )
+
+    # Create MCP controller - everything is automatic!
+    config.mcp_manager = MCP23017Manager(i2c_interface, configuration.MCP23017Pin, debug=config.arg.show_all_logs)
+
+    return_msg = f"Config MCP23017 : SDA out sur {configuration.DAQPin.I2C_SDA_OUT.value}, SDA in sur {configuration.DAQPin.I2C_SDA_IN.value}, SCL sur {configuration.DAQPin.I2C_SCL.value}."
+    return 0, return_msg
 
 def run_step(log, config: configuration.AppConfig, update_percentage=lambda x: None):
     step_name = os.path.splitext(os.path.basename(__file__))[0]
