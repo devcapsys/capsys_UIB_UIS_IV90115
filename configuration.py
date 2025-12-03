@@ -80,55 +80,44 @@ class DAQPin(Enum):
     I2C_SCL = "port0/line0"  # SCL (clock) – yellow wire
     I2C_SDA_OUT = "port0/line1"  # SDA output – blue wire
     I2C_SDA_IN = "port0/line2"  # SDA input – blue wire - read for ACK
-    P03 = "port0/line3"  # General purpose digital I/O 3
-    AI0 = "ai0"  # General purpose analog input 0
-    AI1 = "ai1"  # General purpose analog input 1
-    AI2 = "ai2"  # General purpose analog input 2
-    AI3 = "ai3"  # General purpose analog input 3
-    AI4 = "ai4"  # General purpose analog input 4
-    AI5 = "ai5"  # General purpose analog input 5
-    AI6 = "ai6"  # General purpose analog input 6
-    AI7 = "ai7"  # General purpose analog input 7
+    P03 = "port0/line3"  # Not used
+    AI0 = "ai0"  # Not used
+    AI1 = "ai1"  # Not used
+    AI2 = "ai2"  # Not used
+    AI3 = "ai3"  # Not used
+    AI4 = "ai4"  # Not used
+    AI5 = "ai5"  # Not used
+    AI6 = "ai6"  # Not used
+    AI7 = "ai7"  # Not used
 
 class MCP23017Pin(Enum):
     """
     Enumerates MCP23017 I2C GPIO expander pin assignments for power and control signals.
     https://www.adafruit.com/product/5346
+    Used with RL40004-24 Numato Lab.
+    https://numato.com/product/8-channel-relay-controller-board/
     """
-    A0 = (0x20, MCP23017.Pin.A0, 'out')  # Pin A0
-    A1 = (0x20, MCP23017.Pin.A1, 'out')  # Pin A1
-    A2 = (0x20, MCP23017.Pin.A2, 'out')  # Pin A2
-    A3 = (0x20, MCP23017.Pin.A3, 'out')  # Pin A3
-    A4 = (0x20, MCP23017.Pin.A4, 'out')  # Pin A4
-    A5 = (0x20, MCP23017.Pin.A5, 'out')  # Pin A5
-    A6 = (0x20, MCP23017.Pin.A6, 'out')  # Pin A6
-    A7 = (0x20, MCP23017.Pin.A7, 'out')  # Pin A7
-    B0 = (0x20, MCP23017.Pin.B0, 'out')  # Pin B0
-    B1 = (0x20, MCP23017.Pin.B1, 'out')  # Pin B1
-    B2 = (0x20, MCP23017.Pin.B2, 'out')  # Pin B2
-    B3 = (0x20, MCP23017.Pin.B3, 'out')  # Pin B3
-    B4 = (0x20, MCP23017.Pin.B4, 'out')  # Pin B4
-    B5 = (0x20, MCP23017.Pin.B5, 'out')  # Pin B5
-    B6 = (0x20, MCP23017.Pin.B6, 'out')  # Pin B6
-    B7 = (0x20, MCP23017.Pin.B7, 'out')  # Pin B7    
+    EN_AUTOMATIC_24V = (0x20, MCP23017.Pin.A0, 'out')  # Pin A0 Relay 0
+    EN_24V = (0x20, MCP23017.Pin.A1, 'out')  # Pin A1 Relay 1
+    EN_AUTOMATIC_BTL = (0x20, MCP23017.Pin.A2, 'out')  # Pin A2 Relay 2
+    EN_BTL = (0x20, MCP23017.Pin.A3, 'out')  # Pin A3 Relay 3
+    A4 = (0x20, MCP23017.Pin.A4, 'out')  # Pin A4 Relay 4 not used
+    A5 = (0x20, MCP23017.Pin.A5, 'out')  # Pin A5 Relay 5 not used
+    A6 = (0x20, MCP23017.Pin.A6, 'out')  # Pin A6 Relay 6 not used
+    A7 = (0x20, MCP23017.Pin.A7, 'out')  # Pin A7 Relay 7 not used
+    B0 = (0x20, MCP23017.Pin.B0, 'out')  # Pin B0 Relay 8 not used
+    B1 = (0x20, MCP23017.Pin.B1, 'out')  # Pin B1 Relay 9 not used
+    B2 = (0x20, MCP23017.Pin.B2, 'out')  # Pin B2 Relay 10 not used
+    B3 = (0x20, MCP23017.Pin.B3, 'out')  # Pin B3 Relay 11 not used
+    B4 = (0x20, MCP23017.Pin.B4, 'out')  # Pin B4 Relay 12 not used
+    B5 = (0x20, MCP23017.Pin.B5, 'out')  # Pin B5 Relay 13 not used
+    B6 = (0x20, MCP23017.Pin.B6, 'out')  # Pin B6 Relay 14 not used
+    B7 = (0x20, MCP23017.Pin.B7, 'out')  # Pin B7 Relay 15 not used
 
     def __init__(self, mcp_addr, pin, mode):
         self.mcp_addr = mcp_addr
         self.pin = pin
         self.mode = mode
-
-class commands(Enum):
-    """
-    Enumerates commands for the serial communication with the DUT.
-    Each command includes its expected response pattern.
-    """
-    class CommandResponse:
-        """Represents a command-response pair for DUT communication."""
-        def __init__(self, command: str, answer: str = ""):
-            self.command = command
-            self.answer = answer
-    
-    # TEST_PROD_INIT = CommandResponse("test prod")
 
 class ConfigItems:
     """Container for all configuration items used in the test sequence."""
