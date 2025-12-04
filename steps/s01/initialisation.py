@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import sys, os, json
+import sys, os, json, time
 if __name__ == "__main__":
     BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
     if BASE_DIR not in sys.path:
@@ -190,10 +190,6 @@ def connect_daq(config: configuration.AppConfig, step_name_id):
     calibration_date = device_info.get("calibration_date")
 
     status_code = 0  # Default status: OK
-    if calibration_date is not None:
-        current_date = datetime.now()
-        if current_date > calibration_date + timedelta(days=365):
-            status_code = 2  # Calibration expired
 
     # Create tasks for the whole test
     config.daq_manager.create_do_task(config.daq_port, configuration.DAQPin.I2C_SDA_OUT.value)
@@ -227,6 +223,9 @@ def init_mcp23017(config: configuration.AppConfig, step_name_id):
     config.mcp_manager = MCP23017Manager(i2c_interface, configuration.MCP23017Pin, debug=config.arg.show_all_logs)
 
     return_msg = f"Config MCP23017 : SDA out sur {configuration.DAQPin.I2C_SDA_OUT.value}, SDA in sur {configuration.DAQPin.I2C_SDA_IN.value}, SCL sur {configuration.DAQPin.I2C_SCL.value}."
+    config.mcp_manager.digital_write(configuration.MCP23017Pin.EN_AUTOMATIC_BTL, True)
+    config.mcp_manager.digital_write(configuration.MCP23017Pin.EN_AUTOMATIC_24V, True)
+    time.sleep(1)
     return 0, return_msg
 
 def run_step(log, config: configuration.AppConfig, update_percentage=lambda x: None):
@@ -237,21 +236,22 @@ def run_step(log, config: configuration.AppConfig, update_percentage=lambda x: N
     if status != 0:
         return_msg["infos"].append(f"{step_name_id}")
         return status, return_msg
+    
+    update_percentage(30)
+    log("Initialisation du DAQ...", "cyan")
+    status, msg = connect_daq(config, step_name_id)
+    if status != 0:
+        return status, msg
+    log(msg, "blue")
+
+    update_percentage(75)
+    log("Initialisation des MCP23017...", "cyan")
+    status, msg = init_mcp23017(config, step_name_id)
+    if status != 0:
+        return status, msg
+    log(msg, "blue")
 
     config.printer_brady = BradyBP12Printer()
-
-    msg = configuration.request_user_input(
-        config,
-        "Vérification",
-        "Vérifier que :\n" \
-        "- Le switch de programmation est vers le haut\n" \
-        "- Le switch de test est vers le haut\n" \
-        "- Mettre en tension le banc\n" \
-        "- Les LEDs vertes sont allumées\n" \
-    )
-    if msg is None:
-        return_msg["infos"].append("L'utilisateur a annulé la saisie.")
-        return 1, return_msg
     
     return_msg["infos"].append(f"Initialisation OK")
     return 0, return_msg

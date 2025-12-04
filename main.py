@@ -12,7 +12,6 @@ from datetime import datetime
 import logging, ctypes, tempfile, json
 from modules.capsys_pdf_report.capsys_pdf_report import DeviceReport  # Custom
 from modules.capsys_wrapper_tm_t20iii.capsys_wrapper_tm_t20III import PrinterDC  # Custom
-# from modules.capsys_mac_manager.capsys_mac_manager import MACManager  # Custom - Import to ensure PyInstaller includes it
 import configuration  # Custom
 
 # Global config object
@@ -303,10 +302,10 @@ class MainWindow(QWidget):
             self.test_thread.quit()
             self.test_thread.wait()
         try:
-            if hasattr(config, 'db') and config.db is not None:
-                config.db.disconnect()
+            # Call cleanup to release all resources (db, mcp_manager, daq_manager, serDut)
+            config.cleanup()
         except Exception as e:
-            print(f"Erreur lors de la fermeture de la connexion MySQL : {e}")
+            print(f"Erreur lors du cleanup : {e}")
 
         if a0 is not None:
             a0.accept()

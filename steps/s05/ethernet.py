@@ -79,6 +79,11 @@ if __name__ == "__main__":
     success_end, message_end = run_step_init(log_message, config)
     print(message_end)
     
+    # Launch the init_dut step
+    from steps.s03.init_dut import run_step as run_step_init_dut
+    success_end, message_end = run_step_init_dut(log_message, config)
+    print(message_end)
+    
     # Launch this step
     success, message = run_step(log_message, config)
     print(message)

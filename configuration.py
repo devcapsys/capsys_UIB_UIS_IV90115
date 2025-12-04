@@ -97,22 +97,14 @@ class MCP23017Pin(Enum):
     Used with RL40004-24 Numato Lab.
     https://numato.com/product/8-channel-relay-controller-board/
     """
-    EN_AUTOMATIC_24V = (0x20, MCP23017.Pin.A0, 'out')  # Pin A0 Relay 0
-    EN_24V = (0x20, MCP23017.Pin.A1, 'out')  # Pin A1 Relay 1
-    EN_AUTOMATIC_BTL = (0x20, MCP23017.Pin.A2, 'out')  # Pin A2 Relay 2
-    EN_BTL = (0x20, MCP23017.Pin.A3, 'out')  # Pin A3 Relay 3
-    A4 = (0x20, MCP23017.Pin.A4, 'out')  # Pin A4 Relay 4 not used
-    A5 = (0x20, MCP23017.Pin.A5, 'out')  # Pin A5 Relay 5 not used
-    A6 = (0x20, MCP23017.Pin.A6, 'out')  # Pin A6 Relay 6 not used
-    A7 = (0x20, MCP23017.Pin.A7, 'out')  # Pin A7 Relay 7 not used
-    B0 = (0x20, MCP23017.Pin.B0, 'out')  # Pin B0 Relay 8 not used
-    B1 = (0x20, MCP23017.Pin.B1, 'out')  # Pin B1 Relay 9 not used
-    B2 = (0x20, MCP23017.Pin.B2, 'out')  # Pin B2 Relay 10 not used
-    B3 = (0x20, MCP23017.Pin.B3, 'out')  # Pin B3 Relay 11 not used
-    B4 = (0x20, MCP23017.Pin.B4, 'out')  # Pin B4 Relay 12 not used
-    B5 = (0x20, MCP23017.Pin.B5, 'out')  # Pin B5 Relay 13 not used
-    B6 = (0x20, MCP23017.Pin.B6, 'out')  # Pin B6 Relay 14 not used
-    B7 = (0x20, MCP23017.Pin.B7, 'out')  # Pin B7 Relay 15 not used
+    EN_AUTOMATIC_24V = (0x20, MCP23017.Pin.B0, 'out')  # Pin A0 Relay 0
+    EN_24V = (0x20, MCP23017.Pin.B1, 'out')  # Pin A1 Relay 1
+    EN_AUTOMATIC_BTL = (0x20, MCP23017.Pin.B2, 'out')  # Pin A2 Relay 2
+    EN_BTL = (0x20, MCP23017.Pin.B3, 'out')  # Pin A3 Relay 3
+    B4 = (0x20, MCP23017.Pin.B4, 'out')  # Pin B4 Relay 4 not used
+    B5 = (0x20, MCP23017.Pin.B5, 'out')  # Pin B5 Relay 5 not used
+    B6 = (0x20, MCP23017.Pin.B6, 'out')  # Pin B6 Relay 6 not used
+    B7 = (0x20, MCP23017.Pin.B7, 'out')  # Pin B7 Relay 7 not used
 
     def __init__(self, mcp_addr, pin, mode):
         self.mcp_addr = mcp_addr
@@ -212,6 +204,10 @@ class AppConfig:
         if self.db:
             self.db.disconnect()
             self.db = None
+        if self.mcp_manager:
+            for pin in MCP23017Pin:
+                self.mcp_manager.digital_write(pin, False)
+            self.mcp_manager = None
         if self.daq_manager:
             self.daq_manager.close_all()
             self.daq_manager = None

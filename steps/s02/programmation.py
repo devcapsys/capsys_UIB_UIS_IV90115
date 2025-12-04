@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import sys, os, subprocess, binascii
+import sys, os, subprocess, time
 if __name__ == "__main__":
     BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
     if BASE_DIR not in sys.path:
@@ -21,20 +21,30 @@ def run_step(log, config: configuration.AppConfig, update_percentage=lambda x: N
     # We always save the name of the step in the db
     step_name_id = config.db.create("step_name", {"device_under_test_id": config.device_under_test_id, "step_name": step_name})
     ###################################################################
+    if not hasattr(config, "mcp_manager") or config.mcp_manager is None:
+        return_msg["infos"].append("Le gestionnaire MCP n'est pas initialisé.")
+        return 1, return_msg
+    
+    config.mcp_manager.digital_write(configuration.MCP23017Pin.EN_24V, False)
+    config.mcp_manager.digital_write(configuration.MCP23017Pin.EN_BTL, True)
+    config.mcp_manager.digital_write(configuration.MCP23017Pin.EN_AUTOMATIC_BTL, True)
+    config.mcp_manager.digital_write(configuration.MCP23017Pin.EN_AUTOMATIC_24V, True)
+    config.mcp_manager.digital_write(configuration.MCP23017Pin.EN_24V, True)
+    time.sleep(1)
 
     # If debug, skip programming
+    # TODO
     if (configuration.HASH_GIT == "DEBUGG"):
         log("Mode DEBUG détecté, la programmation est désactivée.", "yellow")
         return 0, return_msg
     else:
         if configuration.HASH_GIT == "DEBUG":
-            log(f"DEBUG mode: Using COM14.", "yellow")
-            port = "COM14"
+            log(f"DEBUG mode: Using COM11.", "yellow")
+            port = "COM11"
         else:
             port = config.configItems.dut.port
         path_btl = config.configItems.btl.path
         path_soft = config.configItems.microcontroller.path
-            
         binaries = [
             {"path": path_btl, "log_key": "Bootloader"},
             {"path": path_soft, "log_key": "Application"},
@@ -46,21 +56,6 @@ def run_step(log, config: configuration.AppConfig, update_percentage=lambda x: N
         if not os.path.exists(programmer_cli):
             return 1, f"STM32CubeProgrammer not found at {programmer_cli}."
         
-        msg = configuration.request_user_input(
-            config,
-            "Programmation",
-            "Est-ce que la programmation a déjà été effectuée ?\n" \
-            "- Si OUI, écrivez oui puis appuyer sur OK\n" \
-            "- Si NON, appuyer sur OK"
-        )
-        if msg is None:
-            return_msg["infos"].append("L'utilisateur a annulé la saisie.")
-            return 1, return_msg
-        if msg.lower() == "oui":
-            log("Programmation déjà effectuée, étape sautée.", "yellow")
-            return_msg["infos"].append("Programmation déjà effectuée, étape sautée.")
-            return 0, return_msg
-
         total_binaries = len(binaries)
         for idx, binary in enumerate(binaries):
             percentage = int((idx / total_binaries) * 100)
@@ -93,6 +88,13 @@ def run_step(log, config: configuration.AppConfig, update_percentage=lambda x: N
                 return_msg["infos"].append(f"Code de retour : {result.returncode}")
                 return_msg["infos"].append(f"Pensez à vérifier l'état du port COM et le câblage.")
                 return 1, return_msg
+        
+        time.sleep(1)
+        config.mcp_manager.digital_write(configuration.MCP23017Pin.EN_24V, False)
+        config.mcp_manager.digital_write(configuration.MCP23017Pin.EN_BTL, False)
+        config.mcp_manager.digital_write(configuration.MCP23017Pin.EN_AUTOMATIC_BTL, True)
+        config.mcp_manager.digital_write(configuration.MCP23017Pin.EN_AUTOMATIC_24V, True)
+        time.sleep(1)
 
         return_msg["infos"].append("Étape OK")
         return 0, return_msg

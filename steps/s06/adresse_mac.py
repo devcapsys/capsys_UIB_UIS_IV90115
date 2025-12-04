@@ -6,7 +6,6 @@ if __name__ == "__main__":
     if BASE_DIR not in sys.path:
         sys.path.insert(0, BASE_DIR)
 import configuration  # Custom
-from configuration import SerialUsbDut  # Custom
 from modules.capsys_mysql_command.capsys_mysql_command import (GenericDatabaseManager, DatabaseConfig) # Custom
 from modules.capsys_mac_manager.capsys_mac_manager import MACManager # Custom
 
@@ -35,7 +34,7 @@ def run_step(log, config: configuration.AppConfig, update_percentage=lambda x: N
     mac_pattern = re.compile(r'^([0-9A-Fa-f]{2}:){5}([0-9A-Fa-f]{2})$')
     
     # Vérification si une adresse MAC existe déjà sur le DUT
-    response = config.serDut.send_command_Cr("TEST MAC", timeout=1.0)
+    response = config.serDut.send_command("TEST MAC\r", timeout=1.0)
     
     # Si une adresse MAC valide existe déjà, on l'utilise
     existing_mac = None
@@ -55,8 +54,12 @@ def run_step(log, config: configuration.AppConfig, update_percentage=lambda x: N
     date = datetime.datetime.now().strftime("%Y-%m-%d")
     mac_address = ""
     manager = None
+    if configuration.HASH_GIT == "DEBUG":
+        path = "C:\\Users\\tgerardin\\CAPSYS\\INDUSTRIE - Documents\\PROD\\Adresses MAC\\adresses MAC - Copie.xlsx"
+    else:
+        path = config.configItems.mac_adress_file.path
     try:
-        manager = MACManager(config.configItems.mac_adress_file.path, "attributions MAC address")
+        manager = MACManager(path, "attributions MAC address")
         manager.open_file()
         mac_address = manager.assign_mac(
             product=config.arg.article,
@@ -94,7 +97,7 @@ def run_step(log, config: configuration.AppConfig, update_percentage=lambda x: N
         return 1, return_msg
 
     # Vérification de l'adresse MAC sur le DUT
-    response = config.serDut.send_command_Cr("TEST MAC", timeout=1.0)
+    response = config.serDut.send_command("TEST MAC\r", timeout=1.0)
     if mac_address['mac_address'] not in response:
         if manager:
             manager.close()
@@ -146,23 +149,15 @@ if __name__ == "__main__":
     success_end, message_end = run_step_init(log_message, config)
     print(message_end)
 
-    if configuration.HASH_GIT == "DEBUG":
-        print("Mode DEBUG détecté : utilisation du port COM14 pour le DUT.")
-        port = "COM14"
-    else:
-        port = config.configItems.dut.port
-    
-    config.serDut = SerialUsbDut(
-        port=port,
-        baudrate=115200,
-        timeout=1,
-        debug=False
-    )
+    # Launch the init_dut step
+    from steps.s03.init_dut import run_step as run_step_init_dut
+    success_end, message_end = run_step_init_dut(log_message, config)
+    print(message_end)
 
     # Launch this step
     success, message = run_step(log_message, config)
     print(message)
-
+    
     # Clear ressources
     from steps.zz.fin_du_test import run_step as run_step_fin_du_test
     success_end, message_end = run_step_fin_du_test(log_message, config)

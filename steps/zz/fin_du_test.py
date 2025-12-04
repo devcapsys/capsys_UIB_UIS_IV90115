@@ -46,16 +46,17 @@ def run_step(log, config: configuration.AppConfig, update_percentage=lambda x: N
         log("Le MCP23017 n'avait pas été initialisé.", "yellow")
     else:
         for pin in configuration.MCP23017Pin:
-            config.mcp_manager.digital_write(pin, False)
+            if pin == configuration.MCP23017Pin.EN_AUTOMATIC_24V or pin == configuration.MCP23017Pin.EN_AUTOMATIC_BTL:
+                config.mcp_manager.digital_write(pin, True)
+            else:
+                config.mcp_manager.digital_write(pin, False)
         log("Le MCP23017 a été réinitialisé.", "blue")
     
     # Close daq
     if config.daq_port == None or config.daq_manager == None:
         return 2, "Le DAQ n'avait pas été initialisé."
     else:
-        config.daq_manager.close_all()
-        config.daq_manager = None
-        log("Le DAQ a été fermé.", "blue")
+        pass
 
     if success == 0:
         return_msg["infos"].append("Nettoyage effectué avec succès.")
