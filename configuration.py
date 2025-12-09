@@ -85,10 +85,10 @@ class DAQPin(Enum):
     AI1 = "ai1"  # Not used
     AI2 = "ai2"  # Not used
     AI3 = "ai3"  # Not used
-    AI4 = "ai4"  # Not used
-    AI5 = "ai5"  # Not used
-    AI6 = "ai6"  # Not used
-    AI7 = "ai7"  # Not used
+    M_V_AT = "ai4"
+    M_V_IVE2 = "ai5"
+    M_V_IVF = "ai6"
+    M_V_IVE1 = "ai7"
 
 class MCP23017Pin(Enum):
     """
@@ -103,8 +103,8 @@ class MCP23017Pin(Enum):
     EN_BTL = (0x20, MCP23017.Pin.B3, 'out')  # Pin A3 Relay 3
     B4 = (0x20, MCP23017.Pin.B4, 'out')  # Pin B4 Relay 4 not used
     B5 = (0x20, MCP23017.Pin.B5, 'out')  # Pin B5 Relay 5 not used
-    B6 = (0x20, MCP23017.Pin.B6, 'out')  # Pin B6 Relay 6 not used
-    B7 = (0x20, MCP23017.Pin.B7, 'out')  # Pin B7 Relay 7 not used
+    EN_GND_IVE1_IVE2_IVF_2 = (0x20, MCP23017.Pin.B6, 'out')  # Pin B6 Relay 6
+    EN_AUTOMATIC_GND_IVE1_IVE2_IVF = (0x20, MCP23017.Pin.B7, 'out')  # Pin B7 Relay 7
 
     def __init__(self, mcp_addr, pin, mode):
         self.mcp_addr = mcp_addr

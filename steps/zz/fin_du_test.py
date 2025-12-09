@@ -46,10 +46,7 @@ def run_step(log, config: configuration.AppConfig, update_percentage=lambda x: N
         log("Le MCP23017 n'avait pas été initialisé.", "yellow")
     else:
         for pin in configuration.MCP23017Pin:
-            if pin == configuration.MCP23017Pin.EN_AUTOMATIC_24V or pin == configuration.MCP23017Pin.EN_AUTOMATIC_BTL:
-                config.mcp_manager.digital_write(pin, True)
-            else:
-                config.mcp_manager.digital_write(pin, False)
+            config.mcp_manager.digital_write(pin, False)
         log("Le MCP23017 a été réinitialisé.", "blue")
     
     # Close daq

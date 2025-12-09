@@ -195,6 +195,10 @@ def connect_daq(config: configuration.AppConfig, step_name_id):
     config.daq_manager.create_do_task(config.daq_port, configuration.DAQPin.I2C_SDA_OUT.value)
     config.daq_manager.create_di_task(config.daq_port, configuration.DAQPin.I2C_SDA_IN.value)
     config.daq_manager.create_do_task(config.daq_port, configuration.DAQPin.I2C_SCL.value)
+    config.daq_manager.create_ai_task(config.daq_port, configuration.DAQPin.M_V_IVE1.value)
+    config.daq_manager.create_ai_task(config.daq_port, configuration.DAQPin.M_V_IVE2.value)
+    config.daq_manager.create_ai_task(config.daq_port, configuration.DAQPin.M_V_IVF.value)
+    config.daq_manager.create_ai_task(config.daq_port, configuration.DAQPin.M_V_AT.value)
 
     return_msg = f"Config DAQ : Port : {config.daq_port} ; Model : {product_type} ; SN : {serial_number} ; Calibration : {calibration_date}"
     return status_code, return_msg
@@ -225,6 +229,7 @@ def init_mcp23017(config: configuration.AppConfig, step_name_id):
     return_msg = f"Config MCP23017 : SDA out sur {configuration.DAQPin.I2C_SDA_OUT.value}, SDA in sur {configuration.DAQPin.I2C_SDA_IN.value}, SCL sur {configuration.DAQPin.I2C_SCL.value}."
     config.mcp_manager.digital_write(configuration.MCP23017Pin.EN_AUTOMATIC_BTL, True)
     config.mcp_manager.digital_write(configuration.MCP23017Pin.EN_AUTOMATIC_24V, True)
+    config.mcp_manager.digital_write(configuration.MCP23017Pin.EN_AUTOMATIC_GND_IVE1_IVE2_IVF, True)
     time.sleep(1)
     return 0, return_msg
 
