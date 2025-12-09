@@ -30,8 +30,42 @@ def init_database_and_checks(log, config: configuration.AppConfig, update_percen
     operator = Operator(**operators[0])
     operator_id = operator.id
 
+    # Retrieve list of product_list
+    valid_product = config.db.get_by_column("product_list", "valid", 1)
+    matching_product = None
+    article_to_match = config.arg.product_list_id
+    article_scanned = config.arg.product_list_id
+    
+    for product in valid_product:
+        info = product.get("info", "")
+        
+        # Try to parse info as JSON
+        try:
+            info_json = json.loads(info)
+            # Check if it's a dict with "scan" and "script" keys
+            if isinstance(info_json, dict) and "scan" in info_json and "script" in info_json:
+                # Check if the scanned article is in the scan list
+                if article_to_match.upper() in [s.upper() for s in info_json["scan"]]:
+                    matching_product = product
+                    # Replace the article with the script value for lookup only
+                    article_to_match = info_json["script"]
+                    log(f"Article '{article_scanned}' mappé vers '{info_json['script']}' (mapping JSON)", "yellow")
+                    break
+        except (json.JSONDecodeError, TypeError, KeyError) as e:
+            return_msg = f"Problème lors de l'analyse JSON pour le produit ID {product.get('id')}."
+            return 1, return_msg
+        
+        # If not valid JSON or no match in JSON, treat as simple string
+        if info.lower() == article_to_match.lower():
+            matching_product = product
+            break
+
+    if not matching_product:
+            return_msg = f"Aucun produit valide trouvé avec info = '{article_scanned}'."
+            return 1, return_msg
+            
     # Retrieve product_list from database
-    config.arg.product_list = config.db.get_by_id("product_list", config.arg.product_list_id)
+    config.arg.product_list = config.db.get_by_id("product_list", article_to_match)
     if not config.arg.product_list:
         return 1, "Aucun produit trouvé dans la base de données."
 
