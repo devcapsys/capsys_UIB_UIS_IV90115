@@ -258,20 +258,8 @@ def run_step(log, config: configuration.AppConfig, update_percentage=lambda x: N
     if config.first_test == True:
         if configuration.HASH_GIT == "DEBUG":
             log(f"DEBUG mode: Skipping user input for paths.", "yellow")
-            config.btl_path = "T:\\SW\\00\\036\\A\\SW00036_A00r_Bootloader_UIB_UIS.hex"
             config.µc_path = "T:\\SW\\00\\083\\A\\SW00083_A01r_UIB_APP.hex"
         else:
-            config.btl_path = configuration.request_user_input(
-                config,
-                "Bootloader",
-                "Rentrez le chemin du bootloader\n"
-                "Ex : \"T:\\SW\\00\\036\\A\\SW00036_A00r_Bootloader_UIB_UIS.hex\""
-            )
-            if config.btl_path is None:
-                return_msg["infos"].append("L'utilisateur a annulé la saisie.")
-                return 1, return_msg
-            config.first_test = False
-
             config.µc_path = configuration.request_user_input(
                 config,
                 "Soft µc",

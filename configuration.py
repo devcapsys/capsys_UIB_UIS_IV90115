@@ -188,7 +188,6 @@ class AppConfig:
         self.device_under_test_id: Optional[int] = None
         self.configItems = ConfigItems()
         self.first_test = True
-        self.btl_path: Optional[str] = None
         self.µc_path: Optional[str] = None
         self.daq_port: Optional[str] = None
         self.daq_manager: Optional[DAQManager] = None
