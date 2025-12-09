@@ -3,7 +3,6 @@ from enum import Enum
 from typing import Optional, Any
 from modules.capsys_mysql_command.capsys_mysql_command import (GenericDatabaseManager, DatabaseConfig) # Custom
 from modules.capsys_wrapper_tm_t20iii.capsys_wrapper_tm_t20III import PrinterDC  # Custom
-from modules.capsys_brady_manager.capsys_brady_manager import BradyBP12Printer  # Custom
 from modules.capsys_daq_manager.capsys_daq_manager import DAQManager  # Custom
 from modules.capsys_mcp23017.capsys_mcp23017 import MCP23017, MCP23017Manager  # Custom
 from modules.capsys_serial_instrument_manager.capsys_serial_instrument_manager import SerialInstrumentManager  # Custom
@@ -196,7 +195,6 @@ class AppConfig:
         self.mcp_manager: Optional[MCP23017Manager] = None
         self.serDut: Optional[SerialUsbDut] = None
         self.printer: Optional[PrinterDC] = None
-        self.printer_brady: Optional[BradyBP12Printer] = None
         atexit.register(self.cleanup) # Register cleanup function to be called on exit
 
     def cleanup(self):

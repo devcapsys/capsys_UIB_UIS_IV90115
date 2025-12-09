@@ -8,6 +8,7 @@ if __name__ == "__main__":
 import configuration  # Custom
 from modules.capsys_mysql_command.capsys_mysql_command import (GenericDatabaseManager, DatabaseConfig) # Custom
 from modules.capsys_mac_manager.capsys_mac_manager import MACManager # Custom
+from modules.capsys_brady_manager.capsys_brady_manager import BradyBP12Printer  # Custom
 
 def get_info():
     return "Cette étape teste les seuils de fonctionnement du radar."
@@ -25,10 +26,6 @@ def run_step(log, config: configuration.AppConfig, update_percentage=lambda x: N
 
     if config.serDut is None or not config.serDut.is_connected():
         return_msg["infos"].append("Le port série n'est pas ouvert.")
-        return 1, return_msg
-    
-    if config.printer_brady is None:
-        return_msg["infos"].append("L'imprimante Brady n'est pas initialisée.")
         return 1, return_msg
 
     mac_pattern = re.compile(r'^([0-9A-Fa-f]{2}:){5}([0-9A-Fa-f]{2})$')
@@ -127,11 +124,12 @@ def run_step(log, config: configuration.AppConfig, update_percentage=lambda x: N
     config.save_value(step_name_id, "mac_address", mac_address['mac_address'], valid=1)
     
     # Print label with Brady printer
-    date = datetime.datetime.now().strftime("%Y-%m-%d")
-    messages = ["CAPSYS", date, f"ID: {config.device_under_test_id}", config.arg.article + config.arg.indice, configuration.HASH_GIT]
-    config.printer_brady.print_label(messages, qrcode=config.device_under_test_id, nb_copies=1)
-    jsonMessages = json.dumps(messages, ensure_ascii=False)
-    config.save_value(step_name_id, "label_printed", jsonMessages, valid=1)
+    # printer_brady = BradyBP12Printer()
+    # date = datetime.datetime.now().strftime("%Y-%m-%d")
+    # messages = ["CAPSYS", date, f"ID: {config.device_under_test_id}", config.arg.article + config.arg.indice, configuration.HASH_GIT]
+    # printer_brady.print_label(messages, qrcode=config.device_under_test_id, nb_copies=1)
+    # jsonMessages = json.dumps(messages, ensure_ascii=False)
+    # config.save_value(step_name_id, "label_printed", jsonMessages, valid=1)
 
     return_msg["infos"].append("Étape OK")
     return 0, return_msg

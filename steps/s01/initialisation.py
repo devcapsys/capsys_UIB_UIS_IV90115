@@ -7,7 +7,6 @@ if __name__ == "__main__":
 from datetime import datetime, timedelta
 import configuration  # Custom
 from modules.capsys_mysql_command.capsys_mysql_command import (GenericDatabaseManager, DatabaseConfig, Operator) # Custom
-from modules.capsys_brady_manager.capsys_brady_manager import BradyBP12Printer  # Custom
 from modules.capsys_daq_manager.capsys_daq_manager import DAQManager  # Custom
 from modules.capsys_mcp23017.capsys_mcp23017 import BitBangI2C, MCP23017Manager  # Custom
 from configuration import VERSION, get_project_path
@@ -255,31 +254,34 @@ def run_step(log, config: configuration.AppConfig, update_percentage=lambda x: N
     if status != 0:
         return status, msg
     log(msg, "blue")
-
-    config.printer_brady = BradyBP12Printer()
     
     if config.first_test == True:
-        config.btl_path = configuration.request_user_input(
-            config,
-            "Bootloader",
-            "Rentrez le chemin du bootloader\n"
-            "Ex : \"T:\\SW\\00\\036\\A\\SW00036_A00r_Bootloader_UIB_UIS.hex\""
-        )
-        if config.btl_path is None:
-            return_msg["infos"].append("L'utilisateur a annulé la saisie.")
-            return 1, return_msg
-        config.first_test = False
+        if configuration.HASH_GIT == "DEBUG":
+            log(f"DEBUG mode: Skipping user input for paths.", "yellow")
+            config.btl_path = "T:\\SW\\00\\036\\A\\SW00036_A00r_Bootloader_UIB_UIS.hex"
+            config.µc_path = "T:\\SW\\00\\083\\A\\SW00083_A01r_UIB_APP.hex"
+        else:
+            config.btl_path = configuration.request_user_input(
+                config,
+                "Bootloader",
+                "Rentrez le chemin du bootloader\n"
+                "Ex : \"T:\\SW\\00\\036\\A\\SW00036_A00r_Bootloader_UIB_UIS.hex\""
+            )
+            if config.btl_path is None:
+                return_msg["infos"].append("L'utilisateur a annulé la saisie.")
+                return 1, return_msg
+            config.first_test = False
 
-        config.µc_path = configuration.request_user_input(
-            config,
-            "Soft µc",
-            "Rentrez le chemin du soft µc\n"
-            "Ex : \"T:\\SW\\00\\083\\A\\SW00083_A01r_UIB_APP.hex\""
-        )
-        if config.µc_path is None:
-            return_msg["infos"].append("L'utilisateur a annulé la saisie.")
-            return 1, return_msg
-        config.first_test = False
+            config.µc_path = configuration.request_user_input(
+                config,
+                "Soft µc",
+                "Rentrez le chemin du soft µc\n"
+                "Ex : \"T:\\SW\\00\\083\\A\\SW00083_A01r_UIB_APP.hex\""
+            )
+            if config.µc_path is None:
+                return_msg["infos"].append("L'utilisateur a annulé la saisie.")
+                return 1, return_msg
+            config.first_test = False
 
     return_msg["infos"].append(f"Initialisation OK")
     return 0, return_msg
