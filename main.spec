@@ -7,16 +7,17 @@ nidaqmx_datas, nidaqmx_binaries, nidaqmx_hiddenimports = collect_all('nidaqmx')
 mysql_datas, mysql_binaries, mysql_hiddenimports = collect_all('mysql.connector')
 reportlab_datas, reportlab_binaries, reportlab_hiddenimports = collect_all('reportlab')
 serial_datas, serial_binaries, serial_hiddenimports = collect_all('serial')
+openpyxl_datas, openpyxl_binaries, openpyxl_hiddenimports = collect_all('openpyxl')
 
 a = Analysis(
     ['main.py'],
     pathex=[],
-    binaries=[] + nidaqmx_binaries + mysql_binaries + reportlab_binaries + serial_binaries,
+    binaries=[] + nidaqmx_binaries + mysql_binaries + reportlab_binaries + serial_binaries + openpyxl_binaries,
     datas=[
         ('logo-big.png', '.'),
         ('steps', 'steps'),
         ('modules', 'modules'),
-    ] + nidaqmx_datas + mysql_datas + reportlab_datas + serial_datas,
+    ] + nidaqmx_datas + mysql_datas + reportlab_datas + serial_datas + openpyxl_datas,
     hiddenimports=[
         # PyQt6 modules
         'PyQt6.QtCore',
