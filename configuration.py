@@ -116,8 +116,6 @@ class ConfigItems:
     key_map = {
         "STM32CubeProgrammer": "stm32_cube_programmer",
         "MAC_ADRESS_FILE": "mac_adress_file",
-        "BTL": "btl",
-        "µC": "microcontroller",
         "PORT_COM_DUT": "dut",
     }
 
@@ -158,8 +156,6 @@ class ConfigItems:
         """Initialize all ConfigItem attributes for different test parameters."""
         self.stm32_cube_programmer = self.ConfigItem()
         self.mac_adress_file = self.ConfigItem()
-        self.btl = self.ConfigItem()
-        self.microcontroller = self.ConfigItem()
         self.dut = self.ConfigItem()
 
 class Arg:
@@ -192,6 +188,9 @@ class AppConfig:
         self.db: Optional[GenericDatabaseManager] = None
         self.device_under_test_id: Optional[int] = None
         self.configItems = ConfigItems()
+        self.first_test = True
+        self.btl_path: Optional[str] = None
+        self.µc_path: Optional[str] = None
         self.daq_port: Optional[str] = None
         self.daq_manager: Optional[DAQManager] = None
         self.mcp_manager: Optional[MCP23017Manager] = None

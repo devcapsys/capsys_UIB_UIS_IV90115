@@ -43,8 +43,8 @@ def run_step(log, config: configuration.AppConfig, update_percentage=lambda x: N
             port = "COM11"
         else:
             port = config.configItems.dut.port
-        path_btl = config.configItems.btl.path
-        path_soft = config.configItems.microcontroller.path
+        path_btl = config.btl_path
+        path_soft = config.µc_path
         binaries = [
             {"path": path_btl, "log_key": "Bootloader"},
             {"path": path_soft, "log_key": "Application"},

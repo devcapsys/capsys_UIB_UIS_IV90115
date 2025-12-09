@@ -482,25 +482,60 @@ class MainWindow(QWidget):
 
     def show_user_input_dialog(self, title, message, callback, font_size=14):
         """Display an input dialog to get text from the user and call the callback with the result."""
-        from PyQt6.QtWidgets import QInputDialog, QLabel
+        from PyQt6.QtWidgets import QDialog, QVBoxLayout, QLabel, QLineEdit, QPushButton, QHBoxLayout
         from PyQt6.QtGui import QFont
+        from PyQt6.QtCore import Qt
         
-        # Create a custom input dialog with font size control
-        dialog = QInputDialog(self)
+        # Create a custom dialog
+        dialog = QDialog(self)
         dialog.setWindowTitle(title)
-        dialog.setLabelText(message)
-        dialog.setInputMode(QInputDialog.InputMode.TextInput)
+        dialog.setMinimumWidth(600)
         
-        # Set font size for the label
+        layout = QVBoxLayout()
+        
+        # Create label with message
+        label = QLabel(message)
         label_font = QFont()
         label_font.setPointSize(font_size)
-        for child in dialog.findChildren(QLabel):
-            child.setFont(label_font)
+        label.setFont(label_font)
+        label.setWordWrap(True)
+        label.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse | Qt.TextInteractionFlag.TextSelectableByKeyboard)
+        layout.addWidget(label)
         
-        ok = dialog.exec()
-        text = dialog.textValue()
+        # Create input field
+        input_field = QLineEdit()
+        input_field.setFont(label_font)
+        # Enable selection and copy
+        input_field.setReadOnly(False)
+        input_field.setFocus()
+        layout.addWidget(input_field)
         
-        if ok:
+        # Create buttons
+        button_layout = QHBoxLayout()
+        ok_button = QPushButton("OK")
+        cancel_button = QPushButton("Annuler")
+        
+        def on_ok():
+            dialog.accept()
+        
+        def on_cancel():
+            dialog.reject()
+        
+        ok_button.clicked.connect(on_ok)
+        cancel_button.clicked.connect(on_cancel)
+        input_field.returnPressed.connect(on_ok)
+        
+        button_layout.addWidget(ok_button)
+        button_layout.addWidget(cancel_button)
+        layout.addLayout(button_layout)
+        
+        dialog.setLayout(layout)
+        
+        # Execute dialog
+        result = dialog.exec()
+        text = input_field.text()
+        
+        if result == QDialog.DialogCode.Accepted:
             callback(text)
         else:
             callback(None)
