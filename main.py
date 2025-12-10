@@ -1020,7 +1020,7 @@ def main():
         # config.arg.of = "1"
         # config.arg.article = "radar"
         # config.arg.indice = "1"
-        # config.arg.product_list_id = "4"
+        config.arg.product_list_id = configuration.PRODUCT_LIST_ID_DEFAULT
         # config.arg.user = "root"
         # config.arg.password = "root"
         # config.arg.host = "127.0.0.1"

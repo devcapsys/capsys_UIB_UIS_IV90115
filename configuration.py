@@ -168,7 +168,7 @@ class Arg:
     of = ""
     article = ""
     indice = ""
-    product_list_id = PRODUCT_LIST_ID_DEFAULT
+    product_list_id = ""
     user = "root"
     password = "root"
     host = "127.0.0.1"

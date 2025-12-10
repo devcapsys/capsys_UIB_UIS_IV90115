@@ -30,48 +30,18 @@ def init_database_and_checks(log, config: configuration.AppConfig, update_percen
     operator = Operator(**operators[0])
     operator_id = operator.id
 
-    # Retrieve list of product_list
-    valid_product = config.db.get_by_column("product_list", "valid", 1)
-    matching_product = None
-    article_to_match = config.arg.product_list_id
-    article_scanned = config.arg.product_list_id
+    if config.arg.product_list_id != configuration.PRODUCT_LIST_ID_DEFAULT:
+        return_msg = f"Le product_list_id spécifié ({config.arg.product_list_id}) ne correspond pas au product_list_id par défaut ({configuration.PRODUCT_LIST_ID_DEFAULT})."
+        return (1, return_msg)
     
-    for product in valid_product:
-        info = product.get("info", "")
-        
-        # Try to parse info as JSON
-        try:
-            info_json = json.loads(info)
-            # Check if it's a dict with "scan" and "script" keys
-            if isinstance(info_json, dict) and "scan" in info_json and "script" in info_json:
-                # Check if the scanned article is in the scan list
-                if article_to_match.upper() in [s.upper() for s in info_json["scan"]]:
-                    matching_product = product
-                    # Replace the article with the script value for lookup only
-                    article_to_match = info_json["script"]
-                    log(f"Article '{article_scanned}' mappé vers '{info_json['script']}' (mapping JSON)", "yellow")
-                    break
-        except (json.JSONDecodeError, TypeError, KeyError) as e:
-            return_msg = f"Problème lors de l'analyse JSON pour le produit ID {product.get('id')}."
-            return 1, return_msg
-        
-        # If not valid JSON or no match in JSON, treat as simple string
-        if info.lower() == article_to_match.lower():
-            matching_product = product
-            break
-
-    if not matching_product:
-            return_msg = f"Aucun produit valide trouvé avec info = '{article_scanned}'."
-            return 1, return_msg
-            
     # Retrieve product_list from database
-    config.arg.product_list = config.db.get_by_id("product_list", article_to_match)
+    config.arg.product_list = config.db.get_by_id("product_list", config.arg.product_list_id)
     if not config.arg.product_list:
         return 1, "Aucun produit trouvé dans la base de données."
 
     # Retrieve bench_composition from database
     bench_composition_id = config.arg.product_list.get("bench_composition_id")
-    bench_composition_raw = config.db.get_by_column("bench_composition", "id", bench_composition_id)
+    bench_composition_raw = config.db.get_by_column("bench_composition", "bench_composition_id", bench_composition_id)
     bench_composition = bench_composition_raw if bench_composition_raw else []
     if not bench_composition:
         return (1, "Problème lors de la récupération de la composition du banc dans la base de données.")
@@ -86,12 +56,15 @@ def init_database_and_checks(log, config: configuration.AppConfig, update_percen
         return (1, "Problème lors de la récupération des périphériques externes dans la base de données.")
 
     # Retrieve script from database
-    script_data = config.db.get_by_id("script", config.arg.product_list_id)
+    script_data = config.db.get_by_column("script", "product_list_id", config.arg.product_list_id)
+    for script in script_data:
+        if script.get("valid") == 0:
+            script_data.remove(script)
     if not script_data:
         return (1, "Problème lors de la récupération du script dans la base de données.")
     # Remove the "file" key if it exists because it's too large to store in the database
-    if "file" in script_data:
-        del script_data["file"]
+    if "file" in script_data[0]:
+        del script_data[0]["file"]
     script = script_data
 
     # Retrieve parameters_group from database
@@ -315,6 +288,7 @@ if __name__ == "__main__":
     # Initialize config
     config = configuration.AppConfig()
     config.arg.show_all_logs = False
+    config.arg.product_list_id = configuration.PRODUCT_LIST_ID_DEFAULT
     
     # Initialize Database
     config.db_config = DatabaseConfig(password="root")
