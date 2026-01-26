@@ -9,7 +9,7 @@ from modules.capsys_serial_instrument_manager.capsys_serial_instrument_manager i
 from modules.capsys_brady_manager.capsys_brady_manager import BradyBP12Printer  # Custom
 
 # Initialize global variables
-CURRENTH_PATH = os.path.dirname(__file__)
+CURRENT_PATH = os.path.dirname(__file__)
 NAME_GUI = "UIB 3 en 1 8E8S RS485 Ehernet 24VDC"
 CONFIG_JSON_NAME = "config_IV90115"
 PRODUCT_LIST_ID_DEFAULT = "6"
