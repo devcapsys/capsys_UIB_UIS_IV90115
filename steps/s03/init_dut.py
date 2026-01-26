@@ -36,7 +36,7 @@ def run_step(log, config: configuration.AppConfig, update_percentage=lambda x: N
 
     if configuration.HASH_GIT == "DEBUG":
         log(f"DEBUG mode: Using COM11 for serial communication.", "yellow")
-        port = "COM11"
+        port = "COM11" # PC TGE
     else:
         port = config.configItems.dut.port
     

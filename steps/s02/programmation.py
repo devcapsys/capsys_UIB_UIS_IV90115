@@ -30,6 +30,7 @@ def run_step(log, config: configuration.AppConfig, update_percentage=lambda x: N
     config.mcp_manager.digital_write(configuration.MCP23017Pin.EN_AUTOMATIC_BTL, True)
     config.mcp_manager.digital_write(configuration.MCP23017Pin.EN_AUTOMATIC_24V, True)
     config.mcp_manager.digital_write(configuration.MCP23017Pin.EN_24V, True)
+    config.mcp_manager.digital_write(configuration.MCP23017Pin.EN_VCC_USB, True)
     time.sleep(1)
 
     # If debug, skip programming
@@ -83,6 +84,7 @@ def run_step(log, config: configuration.AppConfig, update_percentage=lambda x: N
                 return 1, return_msg
         
         time.sleep(1)
+        config.mcp_manager.digital_write(configuration.MCP23017Pin.EN_VCC_USB, False)
         config.mcp_manager.digital_write(configuration.MCP23017Pin.EN_24V, False)
         config.mcp_manager.digital_write(configuration.MCP23017Pin.EN_BTL, False)
         config.mcp_manager.digital_write(configuration.MCP23017Pin.EN_AUTOMATIC_BTL, True)

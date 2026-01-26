@@ -266,13 +266,6 @@ def run_step(log, config: configuration.AppConfig, update_percentage=lambda x: N
     if status != 0:
         return status, msg
     log(msg, "blue")
-
-    try:
-        config.brady_printer = BradyBP12Printer()
-        log("Imprimante Brady initialisée.", "cyan")
-    except Exception as e:
-        return_msg["infos"].append(f"Erreur lors de l'initialisation de l'imprimante Brady : {e}")
-        return 1, return_msg
     
     if config.first_test == True:
         if configuration.HASH_GIT == "DEBUG":

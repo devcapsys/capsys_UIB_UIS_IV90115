@@ -102,7 +102,7 @@ class MCP23017Pin(Enum):
     EN_AUTOMATIC_BTL = (0x20, MCP23017.Pin.B2, 'out')  # Pin A2 Relay 2
     EN_BTL = (0x20, MCP23017.Pin.B3, 'out')  # Pin A3 Relay 3
     B4 = (0x20, MCP23017.Pin.B4, 'out')  # Pin B4 Relay 4 not used
-    B5 = (0x20, MCP23017.Pin.B5, 'out')  # Pin B5 Relay 5 not used
+    EN_VCC_USB = (0x20, MCP23017.Pin.B5, 'out')  # Pin B5 Relay 5 Vcc USB
     EN_GND_IVE1_IVE2_IVF_2 = (0x20, MCP23017.Pin.B6, 'out')  # Pin B6 Relay 6
     EN_AUTOMATIC_GND_IVE1_IVE2_IVF = (0x20, MCP23017.Pin.B7, 'out')  # Pin B7 Relay 7
 
