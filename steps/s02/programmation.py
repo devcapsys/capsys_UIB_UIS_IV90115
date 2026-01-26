@@ -38,11 +38,6 @@ def run_step(log, config: configuration.AppConfig, update_percentage=lambda x: N
         log("Mode DEBUG détecté, la programmation est désactivée.", "yellow")
         return 0, return_msg
     else:
-        if configuration.HASH_GIT == "DEBUG":
-            log(f"DEBUG mode: Using COM11.", "yellow")
-            port = "COM11"
-        else:
-            port = config.configItems.dut.port
         path_soft = config.µc_path
         binaries = [
             {"path": path_soft, "log_key": "Application"},
@@ -63,7 +58,7 @@ def run_step(log, config: configuration.AppConfig, update_percentage=lambda x: N
             
             cmd = [
                 programmer_cli,
-                "-c", f"port={port}",
+                "-c", f"port=usb1",
                 "-w", binary["path"]
             ]
             log(f"Commande subprocess: {' '.join(cmd)}", "blue")
