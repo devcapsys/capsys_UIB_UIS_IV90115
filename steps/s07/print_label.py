@@ -21,10 +21,6 @@ def run_step(log, config: configuration.AppConfig, update_percentage=lambda x: N
     # We always save the name of the step in the db
     step_name_id = config.db.create("step_name", {"device_under_test_id": config.device_under_test_id, "step_name": step_name})
     ###################################################################
-
-    if config.serDut is None or not config.serDut.is_connected():
-        return_msg["infos"].append("Le port série n'est pas ouvert.")
-        return 1, return_msg
     if config.brady_printer is None:
         return_msg["infos"].append("L'imprimante Brady n'est pas initialisée.")
         return 1, return_msg
