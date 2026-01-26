@@ -197,6 +197,10 @@ def connect_daq(config: configuration.AppConfig, step_name_id):
     calibration_date = device_info.get("calibration_date")
 
     status_code = 0  # Default status: OK
+    if calibration_date is not None:
+        current_date = datetime.now()
+        if current_date > calibration_date + timedelta(days=1095):
+            status_code = 2  # Calibration expired
 
     # Create tasks for the whole test
     config.daq_manager.create_do_task(config.daq_port, configuration.DAQPin.I2C_SDA_OUT.value)
